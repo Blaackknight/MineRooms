@@ -146,6 +146,8 @@ on tab complete of "/minerooms" or "/mr":
 on join:
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
+    if userData(player, "data.language") is "<none>":
+        userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
 #                                      mineroomsGetAllRanks functions                                                                          #
 function mineroomsGetAllRanks() :: objects:
     loop yaml node keys "ranks" from "bck.manager.minerooms.data":
