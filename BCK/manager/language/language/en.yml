@@ -23,6 +23,21 @@ core:
             1: "§cUnknown or incomplete command, see below for error"
             2: "§c<--[HERE]"
     command:
+        permission:
+            gui:
+                permissionList:
+                    title: "§e<arg0> §d§lPermissions"
+                    itemName: "§7⧼ §d§lPermissions §7⧽"
+            added: "§ePermission §b<arg0> §eadded to §7<arg1>"
+            hasAlreadyPermission: "§c<arg0> already has permission §b<arg1>"
+            noIndicated: "§cNo permissions indicated.."
+            nameOfMissingPermission: "§cName of a missing permission."
+            dontHavePermission: "§c<arg0> don't have permission §b<arg1>§c.."
+            permissionRemovedFrom: "§ePermission §b<arg0> §4removed §efrom §7<arg1>"
+            addingDefaultPermission: "§2Adding §6default permissions.."
+            defaultPermissionAddedSuccessfully: "§6Default permission §2added successfully§6 !"
+            unknownOption: "§cUnknown option (<arg0>)"
+            missingOption: "§c/permission <arg0> <option>"
         bck:
             rules:
                 gui:

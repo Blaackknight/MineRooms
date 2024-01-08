@@ -2,12 +2,12 @@ on load:
     if {skripts::*} contains "bck_minerooms.sk":
         send "§6[§4BCK§6]§r Loading minerooms..." to console
         wait 2 seconds
-        send "§6[§4BCK§6/§eMinerRooms§6]§r Loaded successfully !" to console
+        send "§6[§4BCK§6/§eMineRooms§6]§r Loaded successfully !" to console
         load yaml "plugins/Skript/scripts/BCK/manager/minerooms/config.yml" as "bck.manager.minerooms.config"
         load yaml "plugins/Skript/scripts/BCK/manager/minerooms/data.yml" as "bck.manager.minerooms.data"
         mineroomsLoad()
     else:
-        broadcast "§6[§4BCK§6/§eMinerRooms§6]§r Script loading cancel It require (bck_minerooms.sk)"
+        broadcast "§6[§4BCK§6/§eMineRooms§6]§r Script loading cancel It require (bck_minerooms.sk)"
         unload script file "bck_minerooms.sk"
     stop
 #                                      txtGiver command                                                                          #
@@ -64,6 +64,7 @@ on tab complete of "/skm":
     set tab completions for position 1 to all items
 #                                      minerooms command                                                                          #
 command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
+    aliases: "mr"
     trigger:
         
 #                                      mineroomsLoad functions                                                                          #
@@ -76,7 +77,7 @@ function mineroomsLoad():
         write "##                   ,,                                                                                 " at line 2 to file "plugins/MineRooms/config.yml"
         write "## `7MMM.     ,MMF'  db                          `7MM""""Mq.                                             " at line 3 to file "plugins/MineRooms/config.yml"
         write "##   MMMb    dPMM                                  MM   `MM.                                            " at line 4 to file "plugins/MineRooms/config.yml"
-        write "##   M YM   ,M MM  `7MM  `7MMpMMMb.  .gP"Ya        MM   ,M9  ,pW"Wq.   ,pW"Wq.`7MMpMMMb.pMMMb.  ,pP"Ybd " at line 5 to file "plugins/MineRooms/config.yml"
+        write "##   M YM   ,M MM  `7MM  `7MMpMMMb.  .gP""Ya        MM   ,M9  ,pW""Wq.   ,pW""Wq.`7MMpMMMb.pMMMb.  ,pP""Ybd " at line 5 to file "plugins/MineRooms/config.yml"
         write "##   M  Mb  M' MM    MM    MM    MM ,M'   Yb       MMmmdM9  6W'   `Wb 6W'   `Wb MM    MM    MM  8I   `"" " at line 6 to file "plugins/MineRooms/config.yml"
         write "##   M  YM.P'  MM    MM    MM    MM 8M""""""       MM  YM.  8M     M8 8M     M8 MM    MM    MM  `YMMMa. " at line 7 to file "plugins/MineRooms/config.yml"
         write "##   M  `YM'   MM    MM    MM    MM YM.    ,       MM   `Mb.YA.   ,A9 YA.   ,A9 MM    MM    MM  L.   I8 " at line 8 to file "plugins/MineRooms/config.yml"
@@ -121,7 +122,7 @@ function mineroomsLoad():
     superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.5")
 
 #                                      tab complete minerooms                                                                          #
-on tab complete of "/minerooms":
+on tab complete of "/minerooms" or "/mr":
     if hasPermission(player, "server.command.minerooms") is false:
         stop
     add "test" to {_data::*}
@@ -142,6 +143,9 @@ on tab complete of "/minerooms":
                 set tab completions for position 3 to all players
                 if tab arg-3 is set:
                     set tab completions for position 4 to userData(player, "player.rank")
+on join:
+    if mineroomsGetRank(player) is "<none>":
+        mineroomsSetRank(player, "wanderer", true)
 #                                      mineroomsGetAllRanks functions                                                                          #
 function mineroomsGetAllRanks() :: objects:
     loop yaml node keys "ranks" from "bck.manager.minerooms.data":
@@ -150,8 +154,36 @@ function mineroomsGetAllRanks() :: objects:
         set {_r} to loop-value
         set {_r::*} to {_r} split by "."
         set {_r} to {_r::2}
-        add "%{_r}%" to {_r::*}
-    return {_r::*}
+        add "%{_r}%" to {_return::*}
+    return {_return::*}
+#                                      mineroomsSetRank functions                                                                          #
+function mineroomsSetRank(player: player, rank: text="wanderer", autoPerm: boolean=false):
+    userData({_player}, "player.rank", "set", {_rank})
+    set {_s} to selector({_player})
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r rank of §7%{_s}% §rhas been set to §7%{_rank}%", "4")
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r rank of §7%{_player}% §rhas been set to §7%{_rank}%", "6", true)
+    if {_autoPerm} is true:
+        loop mineroomsGetRankPerms({_rank}):
+            set {_x} to loop-value
+            addPermission({_player}, {_x})
+#                                      mineroomsGetRank functions                                                                          #
+function mineroomsGetRank(player: player) :: text:
+    set {_r} to userData({_player}, "player.rank")
+    return "%{_r}%"
+#                                      mineroomsSetRank functions                                                                          #
+function mineroomsGetRankPerms(rank: text="?", player: text="?") :: objects:
+    if {_rank} is not "?":
+        if {_player} is not "?":
+            set {_player} to {_player} parsed as player
+            set {_rank} to userData({_player}, "player.rank")
+        set {_perms::*} to yaml list "ranks.%{_rank}%.perms" from "bck.manager.minerooms.data"
+    else:
+        set {_perms::*} to yaml list "ranks.%{_rank}%.perms" from "bck.manager.minerooms.data"
+    return {_perms::*}
+    
+    set {_s} to selector({_player})
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r rank of §7%{_s}% §rhas been set to §7%{_rank}%", "4")
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r rank of §7%{_player}% §rhas been set to §7%{_rank}%", "6", true)
 function mineroomsConfig(find: text, mode: text="extract", data: text="") :: text:
     if {_mode} is "extract":
         set {_result} to yaml value "%{_find}%" from "bck.manager.minerooms.config"

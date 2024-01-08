@@ -785,7 +785,7 @@ on inventory click:
                         set {_lore::*} to lore of {_i}
                         set {_lore} to managerConfig("data.gui.config.recipe.giveLore")
                         if "%{_lores::*}%" doesn't contain {_lore}:
-                            add loop-value-2 to {_lists::*}
+                            add loop-value to {_lists::*}
                         set {_line} to 1
                         loop {_lists::*}:
                             set line {_line} of lore of {_i} to loop-value-2
@@ -897,3 +897,127 @@ on inventory click:
             if "%{_t}%" contain "barrier":
                 if {_u} contain "Back":
                     managerGuiMain(player)
+command /loglevel [<integer=0>] [<player>]:
+    trigger:
+        set {_player} to player
+        if arg-2 is set:
+            set {_player} to arg-2
+        set {_name} to {_player}'s name
+        if arg-1 is 1:
+            removeAllTier({_player})
+            add {_player} to {log.tier1::*}
+            if arg-2 is not set:
+                send "§6[§4BCK§6]§r §eYour log level has been set to §l§b1" to {_player}
+            else:
+                send "§6[§4BCK§6]§r §e%{_name}% log level has been set to §l§b1" to {_player}
+        else if arg-1 is 2:
+            removeAllTier({_player})
+            add {_player} to {log.tier2::*}
+            if arg-2 is not set:
+                send "§6[§4BCK§6]§r §eYour log level has been set to §l§b2" to {_player}
+            else:
+                send "§6[§4BCK§6]§r §e%{_name}% log level has been set to §l§b2" to {_player}
+        else if arg-1 is 3:
+            removeAllTier({_player})
+            add {_player} to {log.tier3::*}
+            if arg-2 is not set:
+                send "§6[§4BCK§6]§r §eYour log level has been set to §l§b3" to {_player}
+            else:
+                send "§6[§4BCK§6]§r §e%{_name}% log level has been set to §l§b3" to {_player}
+        else if arg-1 is 4:
+            removeAllTier({_player})
+            add {_player} to {log.tier4::*}
+            if arg-2 is not set:
+                send "§6[§4BCK§6]§r §eYour log level has been set to §l§b4" to {_player}
+            else:
+                send "§6[§4BCK§6]§r §e%{_name}% log level has been set to §l§b4" to {_player}
+        else if arg-1 is 5:
+            removeAllTier({_player})
+            add {_player} to {log.tier5::*}
+            if arg-2 is not set:
+                send "§6[§4BCK§6]§r §eYour log level has been set to §l§b5" to {_player}
+            else:
+                send "§6[§4BCK§6]§r §e%{_name}% log level has been set to §l§b5" to {_player}
+        else if arg-1 is 0:
+            removeAllTier({_player})
+            if arg-1 is not set:
+                send "§6[§4BCK§6]§r §eYour log level has been §4reset" to {_player}
+            else:
+                send "§6[§4BCK§6]§r §e%{_name}% log level has been §4reset" to {_player}
+
+on tab complete of "/loglevel":
+    if hasPermission(player, "server.command.loglevel") is false:
+        stop
+    set tab completions for position 1 to 1, 2, 3, 4, 5 and 0
+
+function removeAllTier(player: player):
+    remove {_player} from {log.tier1::*}
+    remove {_player} from {log.tier2::*}
+    remove {_player} from {log.tier3::*}
+    remove {_player} from {log.tier4::*}
+    remove {_player} from {log.tier5::*}
+function superLog(txt: text, level: text="1", only: boolean=false):
+    set {_d::*} to {_level} split by "."
+    set {_x} to {_d::1}
+    set {_w} to {_d::2}
+    set {_a} to "%{_x}%.%{_w}%"
+    if {_level} is "1": 
+        if {_only} is false:
+            send formatted {_txt} to {log.tier1::*}
+            send formatted {_txt} to {log.tier2::*}
+            send formatted {_txt} to {log.tier3::*}
+            send formatted {_txt} to {log.tier4::*}
+            send formatted {_txt} to {log.tier5::*}
+        else:
+            send {_txt} to {log.tier1::*}
+    else if {_level} is "2":
+        if {_only} is false:
+            send formatted {_txt} to {log.tier2::*}
+            send formatted {_txt} to {log.tier3::*}
+            send formatted {_txt} to {log.tier4::*}
+            send formatted {_txt} to {log.tier5::*}
+        else:
+            send {_txt} to {log.tier2::*}
+    else if {_level} is "3":
+        if {_only} is false:
+            send formatted {_txt} to {log.tier3::*}
+            send formatted {_txt} to {log.tier4::*}
+            send formatted {_txt} to {log.tier5::*}
+        else:
+            send {_txt} to {log.tier3::*}
+    else if {_level} is "4":
+        if {_only} is false:
+            send formatted {_txt} to {log.tier4::*}
+            send formatted {_txt} to {log.tier5::*}
+        else:
+            send {_txt} to {log.tier4::*}
+    else if {_level} is "5":
+        if {_only} is false:
+            send formatted {_txt} to {log.tier5::*}
+        else:
+            send {_txt} to {log.tier5::*}
+    else if {_x} is "6":
+        if {_only} is false:
+            if {_level} is "6.1":
+                send formatted {_txt} to {log.tier1::*}
+                send formatted {_txt} to {log.tier2::*}
+                send formatted {_txt} to {log.tier3::*}
+                send formatted {_txt} to {log.tier4::*}
+                send formatted {_txt} to {log.tier5::*}
+            else if {_level} is "6.2":
+                send formatted {_txt} to {log.tier2::*}
+                send formatted {_txt} to {log.tier3::*}
+                send formatted {_txt} to {log.tier4::*}
+                send formatted {_txt} to {log.tier5::*}
+            else if {_level} is "6.3":
+                send formatted {_txt} to {log.tier3::*}
+                send formatted {_txt} to {log.tier4::*}
+                send formatted {_txt} to {log.tier5::*}
+            else if {_level} is "6.4":
+                send formatted {_txt} to {log.tier4::*}
+                send formatted {_txt} to {log.tier5::*}
+            else if {_level} is "6.5":
+                send formatted {_txt} to {log.tier5::*}
+            send {_txt} to console
+        else:
+            send {_txt} to console      

@@ -61,9 +61,9 @@ on break:
         set {_player} to selector(player)
     if hasPermission(player, "block.break") is false:
         cancel event
-        send lang("core.noPermission", player)
+        send lang("core.noPermission", player) to player
     else:
-        logCustom("%{_player}% has just breaking the §7%event-block%", 5)
+        logCustom("%{_player}'s name% has just breaking the §7%event-block%", 5)
 on place:
     if player is not set:
         set {_player} to "Server"
@@ -71,16 +71,16 @@ on place:
         set {_player} to selector(player)
     if hasPermission(player, "block.place") is false:
         cancel event
-        send lang("core.noPermission", player)
+        send lang("core.noPermission", player) to player
     else:
         if "%type of event-block%" is "bite":
             cancel event
         else:
-            logCustom("%{_player}% has just placing the §7%event-block%", 5)
+            logCustom("%{_player}'s name% has just placing the §7%event-block%", 5)
 on drop:
     if hasPermission(player, "item.drop") is false:
         cancel event
-        send lang("core.noPermission", player)
+        send lang("core.noPermission", player) to player
 on pickup:
     if hasPermission(player, "item.pickup") is false:
         cancel event
@@ -92,14 +92,14 @@ on command:
     if {_p::*} contain sender:
         set {_v} to true
         set {_player} to selector(player)
-    else if "%sender%" is "@":
+    else if sender's name is "@":
         set {_player} to "@"
     else:
         set {_player} to "Server"
     if {_v} is true:
         if hasPermission(player, "server.command.%command%") is false:
             cancel event
-            send lang("core.noPermission", player)
+            send lang("core.noPermission", player) to player
             #broadcast {_player}
         
     if {_player} is "Server":
@@ -137,11 +137,11 @@ on damage:
         set {_a} to attacker
         if damage cause is fall:
             set {_a} to "fall"
-        logCustom("%{_v}% has just taken damage by §7%{_a}% (%damage%§4♥§7)§r at %event-location%", 5)
+        logCustom("%{_v}'s name% has just taken damage by §7%{_a}'s name% (%damage%§4♥§7)§r at %event-location%", 5)
 on drop:
-    logCustom("%player% has just dropped a §7%event-item%§r on the ground at %event-location%", 5)
+    logCustom("%player's name% has just dropped a §7%event-item%§r on the ground at %event-location%", 5)
 on pickup:
-    logCustom("%player% has just pickup a §7%event-item%§r at %event-location%", 5)
+    logCustom("%player's name% has just pickup a §7%event-item%§r at %event-location%", 5)
 on enderman pickup:
     logCustom("§l§5Mr Enderman§r just stole a §7%event-block%§r at %event-location%", 5)
 on explode:
@@ -151,7 +151,7 @@ on fade of snow layer:
 on fade of ice:
     logCustom("§7%event-block%§r has just melted at %event-location%", 5)
 on player fish:
-    logCustom("%player% has just fished", 5)
+    logCustom("%player's name% has just fished", 5)
 on grow:
     logCustom("§7%event-block%§r just sprouted at %event-location%", 5)
 on tool break:
@@ -180,9 +180,9 @@ on player move:
     set {_y} to {_y} parsed as number
     #send action bar "%{_y}%" to player
     if {_y} is less than -0.08:
-        set {jump.%player%} to true
-    else if {jump.%player%} is true:
-        set {jump.%player%} to false
+        set {jump.%player's name%} to true
+    else if {jump.%player's name%} is true:
+        set {jump.%player's name%} to false
         #send "§c§lHey! §7Tu n'a pas la permission :|"
 every minecraft day in "world":
     add 1 to {world.day}

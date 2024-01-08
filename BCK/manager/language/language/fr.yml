@@ -20,6 +20,21 @@ core:
             1: "§cCommande inconnue ou incomplète, voir ci-dessous pour l'erreur"
             2: "§c<--[ICI]"
     command:
+        permission:
+            gui:
+                permissionList:
+                    title: "§e<arg0> §d§lPermissions"
+                    itemName: "§7⧼ §d§lPermissions §7⧽"
+            added: "§ePermission §b<arg0> §eajouté à §7<arg1>"
+            hasAlreadyPermission: "§c<arg0> a déja la permission §b<arg1>"
+            noIndicated: "§cAucune permission indiqué.."
+            nameOfMissingPermission: "§cNom d'une permission manquante."
+            dontHavePermission: "§c<arg0> n'as pas la permission §b<arg1>§c.."
+            permissionRemovedFrom: "§ePermission §b<arg0> §4enlevé §ede §7<arg1>"
+            addingDefaultPermission: "§2Ajout §6des permissions par défaut.."
+            defaultPermissionAddedSuccessfully: "§6Permissions par défaut §2ajouté avec succès§6 !"
+            unknownOption: "§cOption Inconnue (<arg0>)"
+            missingOption: "§c/permission <arg0> <option>"
         bck:
             rules:
                 gui:

@@ -11,7 +11,7 @@ command /permission [<offlineplayer>] [<text>] [<text>]:
     trigger:
         if hasPermission(player, "server.owner") is false:
             if "%player%" is not "<none>":
-                send lang("core.noPermission", player)
+                send lang("core.noPermission", player) to player
                 stop
         if arg-1 is not set:
             set {_p} to player
@@ -20,41 +20,50 @@ command /permission [<offlineplayer>] [<text>] [<text>]:
         if arg-2 is set:
             if arg-2 is "add":
                 if arg-3 is set:
-                    if {server.permission.%{_p}%.list::*} doesn't contain arg-3:
+                    if {server.permission.%{_p}'s name%.list::*} doesn't contain arg-3:
                         addPermission({_p}, arg-3, true)
-                        send "§ePermission §b%arg-3% §eajouter à §7%{_p}%"
+                        add arg-3 to {_args::*}
+                        add {_p}'s name to {_args::*}
+                        send formatted superLang("core.command.permission.added", player, {_args::*}) to player
                     else:
-                        send "§c%{_p}% a déja la permission %arg-3%"
+                        add {_p}'s name to {_args::*}
+                        add arg-3 to {_args::*}
+                        send formatted superLang("core.command.permission.hasAlreadyPermission", player, {_args::*}) to player
                 else:
-                    send "§cAucune permission indiqué.."
+                    send formatted lang("core.command.permission.noIndicated", player) to player
             else if arg-2 is "remove":
                 if arg-3 is not set:
-                    send "§cNom d'une permission manquante."
+                    send formatted lang("core.command.permission.nameOfMissingPermission", player) to player
                     stop
-                if {server.permission.%{_p}%.list::*} doesn't contain arg-3:
-                    send "§c%{_p}% n'as pas la permission %arg-3%.."
+                if {server.permission.%{_p}'s name%.list::*} doesn't contain arg-3:
+                    add {_p}'s name to {_args::*}
+                    add arg-3 to {_args::*}
+                    send formatted superLang("core.command.permission.dontHavePermission", player, {_args::*}) to player
                     stop
                 removePermission({_p}, arg-3, true)
-                send "§ePermission §b%arg-3% §eenlever à §7%{_p}%"
+                add arg-3 to {_args::*}
+                add {_p}'s name to {_args::*}
+                send formatted superLang("core.command.permission.permissionRemovedFrom", player, {_args::*}) to player
             else if arg-2 is "reset":
-                loop {server.permission.%{_p}%.list::*}:
+                loop {server.permission.%{_p}'s name%.list::*}:
                     removePermission({_p}, loop-value, true)
-                    #send "%loop-value%"
             else if arg-2 is "default":
-                loop {server.permission.%{_p}%.list::*}:
+                loop {server.permission.%{_p}'s name%.list::*}:
                     if loop-value is not "server.owner":
                         removePermission({_p}, loop-value, true)
-                send "§6Permissions §4enlever§6 de §b%{_p}%"
-                send "§2Ajout§6 des permissions par défault.."
+                add {_p}'s name to {_args::*}
+                send formatted superLang("core.command.permission.permissionRemovedFrom", player, {_args::*}) to player
+                send formatted lang("core.command.permission.addingDefaultPermission", player) to player
                 
                 wait 1 second
                 defaultPermission({_p})
-                send "§6Permission par défault §2ajouter avec succès§6 !"
+                send formatted lang("core.command.permission.defaultPermissionAddedSuccessfully", player) to player
             else if arg-2 is "list":
-                set {_gui} to genericGui("§e%{_p}% §d§lPermissions", 3, true)
-                set {_perms} to command block named "§7⧼ §d§lPermissions §7⧽"
+                add {_p}'s name to {_args::*}
+                set {_gui} to genericGui(superLang("core.command.permission.gui.permissionList.title", player, {_args::*}), 3, true)
+                set {_perms} to command block named lang("core.command.permission.gui.permissionList.itemName", player)
                 set {_l} to 1
-                loop {server.permission.%{_p}%.list::*}:
+                loop {server.permission.%{_p}'s name%.list::*}:
                     if loop-value is "server.owner":
                         set line {_l} of lore of {_perms} to "§e‣ §r§4§l%loop-value%"
                     else:
@@ -64,9 +73,11 @@ command /permission [<offlineplayer>] [<text>] [<text>]:
                 open {_gui} to player
                 userData(player, "data.inv", "set", "permission.list.main")
             else:
-                send "§cOption inconnue (%arg-2%)"
+                add arg-2 to {_args::*}
+                send formatted superLang("core.command.permission.unknownOption", player, {_args::*}) to player
         else:
-            send "§c/permission %{_p}% <option>"
+            add {_p}'s name to {_args::*}
+            send formatted superLang("core.command.permission.missingOption", player, {_args::*}) to player
 on inventory click: 
     if userData(player, "data.inv") is "permission.list.main":
         cancel event
@@ -83,11 +94,11 @@ on tab complete of "/permission":
         stop
     set tab completions for position 2 to "add","remove", "list", "default" and "reset"
     loop all players:
-        if "%loop-value%" is tab arg-1:
+        if loop-value's name is tab arg-1:
             if tab arg-2 is "add":
                 set tab completions for position 3 to getServerPermission(loop-value, true)
             else if tab arg-2 is "remove":
-                set tab completions for position 3 to {server.permission.%loop-value%.list::*}
+                set tab completions for position 3 to {server.permission.%loop-value's name%.list::*}
 command /bck [<text>] [<text>] [<text>]:
     trigger:
         if hasPermission(player, "server.owner") is false:
@@ -120,14 +131,14 @@ command /bck [<text>] [<text>] [<text>]:
             else if arg-1 is "config":
 
             else if arg-1 is "nbt":
-                set {_t} to player's tool
-                if {_t} is not air:
-                    set {_nbt} to nbt of {_t}
-                    send formatted "§6[§4BCK§6/§eNbt§6] §d<insertion:%{_nbt}%>%{_nbt}%"
-                else:
-                    send "§6[§4BCK§6/§eNbt§6] §cRien dans votre main :/"
+                # set {_t} to player's tool
+                # if {_t} is not air:
+                #     set {_nbt} to nbt of player's tool
+                #     send formatted "§6[§4BCK§6/§eNbt§6] §d<insertion:%{_nbt}%>%{_nbt}%"
+                # else:
+                #     send "§6[§4BCK§6/§eNbt§6] §cRien dans votre main :/"
             else if arg-1 is "first":
-                firstJoin(player)
+                #firstJoin(player)
             else if arg-1 is "itemCheck":
                 if hasPermission(player, "server.owner") is false:
                     send lang("core.noPermission", player)
@@ -164,19 +175,19 @@ command /bck [<text>] [<text>] [<text>]:
                     userDataBoolean(player, "player.god", "set", true)
                     send formatted lang("core.command.bck.god.activated", player)
                     superLog("§6[§4BCK§6]§r §7%{_s}%§r activated his §7god mode", "4")
-                    superLog("§6[§4BCK§6]§r §7%player%§r activated his §7god mode", "6", true)
+                    superLog("§6[§4BCK§6]§r §7%player's name%§r activated his §7god mode", "6", true)
                 else if userDataBoolean(player, "player.god") is true:
                     userDataBoolean(player, "player.god", "set", false)
                     send formatted lang("core.command.bck.god.removed", player)
                     superLog("§6[§4BCK§6]§r §7%{_s}%§r disabled his §7god mode", "4")
-                    superLog("§6[§4BCK§6]§r §7%player%§r disabled his §7god mode", "6", true)
+                    superLog("§6[§4BCK§6]§r §7%player's name%§r disabled his §7god mode", "6", true)
             else if arg-1 is "op":
                 op player
                 send actionbar lang("core.command.bck.op.success", player)
             else if arg-1 is "deop":
                 deop player
                 send actionbar lang("core.command.bck.deop.success", player)
-                #make console execute command "/op %player%"
+                #make console execute command "/op %player's name%"
             else:
                 send "§cOption iconnue (%arg-1%)"
         else:
@@ -199,12 +210,12 @@ on inventory click:
                     if coreDataBoolean("tnt.status") is false:
                         coreDataBoolean("tnt.status", "set", true)
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7tnt.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §aactivated §7tnt.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §aactivated §7tnt.status§r", "6", true)
                         play sound "entity.experience_orb.pickup" with volume 0.3 for player
                     else:
                         coreDataBoolean("tnt.status", "set")
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7tnt.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §4desactivated §7tnt.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §4desactivated §7tnt.status§r", "6", true)
                         play sound "entity.villager.no" with volume 0.5 for player
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
@@ -216,12 +227,12 @@ on inventory click:
                     else if coreDataBoolean("commandBlock.status") is false:
                         coreDataBoolean("commandBlock.status", "set", true)
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7commandBlock.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §aactivated §7commandBlock.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §aactivated §7commandBlock.status§r", "6", true)
                         play sound "entity.experience_orb.pickup" with volume 0.3 for player
                     else:
                         coreDataBoolean("commandBlock.status", "set")
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7commandBlock.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §4desactivated §7commandBlock.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §4desactivated §7commandBlock.status§r", "6", true)
                         play sound "entity.villager.no" with volume 0.5 for player
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
@@ -231,12 +242,12 @@ on inventory click:
                     if coreDataBoolean("pvp.status") is false:
                         coreDataBoolean("pvp.status", "set", true)
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7pvp.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §aactivated §7pvp.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §aactivated §7pvp.status§r", "6", true)
                         play sound "entity.experience_orb.pickup" with volume 0.3 for player
                     else:
                         coreDataBoolean("pvp.status", "set")
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7pvp.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §4desactivated §7pvp.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §4desactivated §7pvp.status§r", "6", true)
                         play sound "entity.villager.no" with volume 0.5 for player
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
@@ -246,12 +257,12 @@ on inventory click:
                     if coreDataBoolean("startDay.status") is false:
                         coreDataBoolean("startDay.status", "set", true)
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7startDay.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §aactivated §7startDay.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §aactivated §7startDay.status§r", "6", true)
                         play sound "entity.experience_orb.pickup" with volume 0.3 for player
                     else:
                         coreDataBoolean("startDay.status", "set")
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7startDay.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §4desactivated §7startDay.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §4desactivated §7startDay.status§r", "6", true)
                         play sound "entity.villager.no" with volume 0.5 for player
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
@@ -261,12 +272,12 @@ on inventory click:
                     if coreDataBoolean("startClear.status") is false:
                         coreDataBoolean("startClear.status", "set", true)
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7startClear.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §aactivated §7startClear.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §aactivated §7startClear.status§r", "6", true)
                         play sound "entity.experience_orb.pickup" with volume 0.3 for player
                     else:
                         coreDataBoolean("startClear.status", "set")
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7startClear.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §4desactivated §7startClear.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §4desactivated §7startClear.status§r", "6", true)
                         play sound "entity.villager.no" with volume 0.5 for player
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
@@ -276,12 +287,12 @@ on inventory click:
                     if coreDataBoolean("forge.status") is false:
                         coreDataBoolean("forge.status", "set", true)
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7forge.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §aactivated §7forge.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §aactivated §7forge.status§r", "6", true)
                         play sound "entity.experience_orb.pickup" with volume 0.3 for player
                     else:
                         coreDataBoolean("forge.status", "set")
                         superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7forge.status§r", "4")
-                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §4desactivated §7forge.status§r", "6", true)
+                        superLog("§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §4desactivated §7forge.status§r", "6", true)
                         play sound "entity.villager.no" with volume 0.5 for player
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
@@ -292,13 +303,13 @@ on inventory click:
                         coreDataBoolean("kits.status", "set", true)
                         send formatted "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7kits.status§r" to {log.tier4::*}
                         send formatted "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §aactivated §7kits.status§r" to {log.tier5::*}
-                        send "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §aactivated §7kits.status§r" to console
+                        send "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §aactivated §7kits.status§r" to console
                         play sound "entity.experience_orb.pickup" with volume 0.3 for player
                     else:
                         coreDataBoolean("kits.status", "set")
                         send formatted "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7kits.status§r" to {log.tier4::*}
                         send formatted "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%selector(player)%§r has been §4desactivated §7kits.status§r" to {log.tier5::*}
-                        send "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player%§r has been §4desactivated §7kits.status§r" to console
+                        send "§6[§4BCK§6/§eCore§6/§1Rules§6]§r §7%player's name%§r has been §4desactivated §7kits.status§r" to console
                         play sound "entity.villager.no" with volume 0.5 for player
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
