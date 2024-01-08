@@ -64,9 +64,52 @@ on tab complete of "/skm":
     set tab completions for position 1 to all items
 #                                      minerooms command                                                                          #
 command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
-    aliases: "mr"
+    aliases: /mr
     trigger:
-        
+        if arg-1 is not set:
+            add command to {_args::*}
+            send formatted superLang("minerooms.command.noOption", player, {_args::*}) to player
+        if arg-1 is "rank":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            if arg-2 is not set:
+                add command to {_args::*}
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.noSecondOption", player, {_args::*}) to player
+            else if arg-2 is "set":
+                if arg-3 is not set:
+                    send formatted lang("minerooms.command.missingPlayer", player) to player
+                else:
+                    if arg-4 is not set:
+                        send formatted lang("minerooms.command.missingRank", player) to player
+                    else:
+                        if mineroomsGetAllRanks() doesn't contain arg-4:
+                            add arg-4 to {_args::*}
+                            send formatted superLang("minerooms.command.unknownRank", player, {_args::*}) to player
+            else if arg-2 is "remove":
+                if arg-3 is not set:
+                    send formatted lang("minerooms.command.missingPlayer", player) to player
+                else:
+                    if arg-4 is not set:
+                        send formatted lang("minerooms.command.missingRank", player) to player
+                    else:
+                        if mineroomsGetAllRanks() doesn't contain arg-4:
+                            add arg-4 to {_args::*}
+                            send formatted superLang("minerooms.command.unknownRank", player, {_args::*}) to player
+                        else:
+                            if userData(arg-3, "player.rank") is arg-4:
+                                mineroomsSetRank(arg-3, mineroomsData("ranks.default"), true)
+                            else:
+                                add arg-3's name to {_args::*}
+                                send formatted superLang("minerooms.command.hisDontHaveThisRank", player, {_args::*}) to player
+            else:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+        else:
+            add arg-1 to {_args::*}
+            send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
 #                                      mineroomsLoad functions                                                                          #
 function mineroomsLoad():
     set {_data::*} to yaml list "data.minerooms.load.options" from "bck.manager.minerooms.config"
@@ -146,6 +189,8 @@ on tab complete of "/minerooms" or "/mr":
 on join:
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
+    else if mineroomsGetAllRanks() doesn't contain userData(player, "player.rank"):
+        mineroomsSetRank(player, "wanderer", true)
     if userData(player, "data.language") is "<none>":
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
 #                                      mineroomsGetAllRanks functions                                                                          #
@@ -162,19 +207,30 @@ function mineroomsGetAllRanks() :: objects:
 function mineroomsSetRank(player: player, rank: text="wanderer", autoPerm: boolean=false):
     userData({_player}, "player.rank", "set", {_rank})
     set {_s} to selector({_player})
-    superLog("§6[§4BCK§6/§eMineRooms§6]§r rank of §7%{_s}% §rhas been set to §7%{_rank}%", "4")
-    superLog("§6[§4BCK§6/§eMineRooms§6]§r rank of §7%{_player}% §rhas been set to §7%{_rank}%", "6", true)
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r Rank of §7%{_s}% §rhas been set to §7%{_rank}%", "4")
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r Rank of §7%{_player}'s name% §rhas been set to §7%{_rank}%", "6", true)
     if {_autoPerm} is true:
+        set {_perms::*} to mineroomsGetRankPerms({_rank})
+        if "%{_perms::*}%" is "<none>":
+            loop {server.permission.%{_player}'s name%.list::*}:
+                if loop-value is not "server.owner":
+                    removePermission({_player}, loop-value, true)
         loop mineroomsGetRankPerms({_rank}):
             set {_x} to loop-value
-            addPermission({_player}, {_x})
+            if {_x} contain "permissions":
+                set {_data::*} to {_x} split by "."
+                set {_w} to {_data::2}
+                loop mineroomsGetRankPerms({w}):
+                    set {_xx} to loop-value-2
+                    addPermission({_player}, {_xx}, true)
+            addPermission({_player}, {_x}, true)
 #                                      mineroomsGetRank functions                                                                          #
 function mineroomsGetRank(player: player) :: text:
     set {_r} to userData({_player}, "player.rank")
     return "%{_r}%"
 #                                      mineroomsSetRank functions                                                                          #
 function mineroomsGetRankPerms(rank: text="?", player: text="?") :: objects:
-    if {_rank} is not "?":
+    if {_rank} is "?":
         if {_player} is not "?":
             set {_player} to {_player} parsed as player
             set {_rank} to userData({_player}, "player.rank")

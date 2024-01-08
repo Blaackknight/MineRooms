@@ -3,6 +3,7 @@ data:
         load:
             options:
             - "ranks:"
+            - "    default: randomGuy"
             - "    wanderer:"
             - "        name: \"<lang:minerooms.ranks.wanderer.name>\""
             - "        perms:"
@@ -16,6 +17,7 @@ data:
             - "            - server.command.teammsg"
             - "            - server.command.tm"
             - "            - server.command.me"
+            - "            - server.command.minerooms"
             - "    moderator:"
             - "        name: \"<lang:minerooms.ranks.moderator.name>\""
             - "        perms:"

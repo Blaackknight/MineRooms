@@ -7,6 +7,14 @@ language:
 manager:
 other:
 minerooms:
+    command:
+        noOption: "§c/<arg0> <option>"
+        noSecondOption: "§c/<arg0> <arg1> <option>"
+        unknownOption: "§cUnknown option (<arg0>)"
+        missingPlayer: "§cMissing player.."
+        missingRank: "§cMissing rank.."
+        unknownRank: "§cUnknown rank (<arg0>)"
+        hisDontHaveThisRank: "§c<arg0> doesn't have this rank."
     ranks:
         wanderer:
             name: "§7Wanderer"
