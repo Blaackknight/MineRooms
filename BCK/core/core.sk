@@ -90,6 +90,10 @@ on tab complete of "/permission":
                 set tab completions for position 3 to {server.permission.%loop-value%.list::*}
 command /bck [<text>] [<text>] [<text>]:
     trigger:
+        if hasPermission(player, "server.owner") is false:
+            if "%player%" is not "<none>":
+                send lang("core.noPermission", player)
+                stop
         if arg-1 is set:
             if arg-1 is "slotCount":
                 set {_n} to arg-2 parsed as number
@@ -205,7 +209,6 @@ on inventory click:
                     loop all players:
                         if userData(loop-player, "data.inv") is "core.bck.rules.main":
                             coreRulesGuiUpdater(loop-player)
-                    #grimhuntConfigGuiUpdater(player)
             else if "%{_t}%" contain "command block":
                 if {_u} is "Command Block":
                     if serverPropertiesBoolean("enable-command-block") is false:
@@ -337,91 +340,10 @@ function coreRulesGuiUpdater(player: player):
         set {_statusPvp} to {_e}
         enchant {_pvp} with thorns 1
 
-    set {_startClear} to lava bucket named "§dStarting Clear"
-    if coreDataBoolean("startClear.status") is false:
-        set {_status_start_clear} to {_d}
-        disenchant {_startClear}
-    else:
-        set {_status_start_clear} to {_e}
-        enchant {_startClear} with thorns 1
-
-    set {_particles} to redstone named "§4Particles"
-    if coreDataBoolean("particles.status") is false:
-        set {_status_particles} to {_d}
-        disenchant {_particles}
-    else:
-        set {_status_particles} to {_e}
-        enchant {_particles} with thorns 1
-
-    set {_forge} to furnace named "§6Forge"
-    if coreDataBoolean("forge.status") is false:
-        set {_status_forge} to {_d}
-        disenchant {_forge}
-    else:
-        set {_status_forge} to {_e}
-        enchant {_forge} with thorns 1
-
-    set {_kits} to iron sword named "§1Kits"
-    if coreDataBoolean("kits.status") is false:
-        set {_status_kits} to {_d}
-        disenchant {_kits}
-    else:
-        set {_status_kits} to {_e}
-        enchant {_kits} with thorns 1
-
-    set line 2 of lore of {_tnt} to "%{_s}% %{_statusTnt}%"
-    set line 4 of lore of {_tnt} to lang("core.command.bck.rules.updater.lore.tnt", {_player})
-
-    set line 2 of lore of {_commandBlock} to "%{_s}% %{_statusCommandBlock}%"
-    set line 4 of lore of {_commandBlock} to lang("core.command.bck.rules.updater.lore.commandBlock", {_player})
-
-    set line 2 of lore of {_pvp} to "%{_s}% %{_statusPvp}%"
-    set line 4 of lore of {_pvp} to lang("core.command.bck.rules.updater.lore.pvp", {_player})
-
-    set line 2 of lore of {_startClear} to "%{_s}% %{_status_start_clear}%"
-    set line 4 of lore of {_startClear} to lang("core.command.bck.rules.updater.lore.start_clear", {_player})
-
-    set line 2 of lore of {_particles} to "%{_s}% %{_status_particles}%"
-    set line 4 of lore of {_particles} to lang("core.command.bck.rules.updater.lore.particles", {_player})
-
-    set line 2 of lore of {_forge} to "%{_s}% %{_status_forge}%"
-    set line 4 of lore of {_forge} to lang("core.command.bck.rules.updater.lore.forge.1", {_player})
-    set line 5 of lore of {_forge} to lang("core.command.bck.rules.updater.lore.forge.2", {_player})
-
-    set line 2 of lore of {_kits} to "%{_s}% %{_status_kits}%"
-    set line 4 of lore of {_kits} to lang("core.command.bck.rules.updater.lore.kits", {_player})
-    set {_kits::*} to yaml list "kits.kit" from "bck.manager.grimhunt.data"
-    if "%{_kits::*}%" is "<none>":
-        set line 5 of lore of {_kits} to lang("grimhunt.gui.updater.noKitFound", {_player})
-    else:
-        set line 6 of lore of {_kits} to lang("grimhunt.gui.updater.currentKit", {_player})
-        set {_c} to 7
-        set {_co} to "§b"
-        set {_mm::*} to all items
-        loop {_kits::*}:
-            if loop-value doesn't contain " <":
-                set {_vn} to loop-value
-                set {_vc} to 1
-            else:
-                set {_vd::*} to loop-value split by " <"
-                set {_vn} to {_vd::1}
-                set {_vc} to {_vd::2}
-                replace ">" with "" in {_vc} 
-                set {_vc} to {_vc} parsed as integer
-                if {_vc} is 0:
-                    set {_vc} to 1
-            if "%{_mm::*}%" doesn't contain {_vn}:
-                set {_co} to "§3§m"
-            set line {_c} of lore of {_kits} to "§e➛ %{_co}%%{_vn}%§r §dx%{_vc}%§r"
-            add 1 to {_c}
     set slot 22 of {_gui} to air
     set slot 11 of {_gui} to {_tnt}
     set slot 12 of {_gui} to {_commandBlock}
     set slot 13 of {_gui} to {_pvp}
-    set slot 14 of {_gui} to {_startClear}
-    set slot 15 of {_gui} to {_particles}
-    set slot 20 of {_gui} to {_forge}
-    set slot 21 of {_gui} to {_kits}
 
 on tab complete of "/bck":
     if hasPermission(player, "server.command.bck") is false:
