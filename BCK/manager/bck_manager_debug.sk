@@ -16,7 +16,6 @@ on load:
     addServerPermission("player.attack")
     addServerPermission("server.command")
     addServerPermission("server.owner")
-    addServerPermission("server.command.grimhunt")
     addServerPermission("server.command.msg")
     addServerPermission("server.command.tell")
     addServerPermission("server.command.teammsg")

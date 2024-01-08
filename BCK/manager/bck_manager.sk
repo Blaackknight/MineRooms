@@ -71,7 +71,7 @@ command /manager:
     trigger:
         managerGuiMain(player)
 function guiMain(player: player, type: text):
-    if {_type} is "grimhunt":
+    if {_type} is "minerooms":
         set {_gn} to managerConfig("data.gui.%{_type}%.guiName")
         set {_gui} to genericGui({_gn}, 3, true)
         set {_i} to compass named "§4§lHunters"

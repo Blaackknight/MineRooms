@@ -6,7 +6,14 @@ language:
     languageServerSetTo: "§eThe §4§lBCK§e language on the server side has just been §achanged to§r"
 manager:
 other:
-grimhunt:
+minerooms:
+    ranks:
+        wanderer:
+            name: "§7Wanderer"
+        moderator:
+            name: "§2Moderator"
+        administrator:
+            name: "§4Administrator"
 core:
     noPermission: "§c§lHey! §7You don't have permission :|"
     cannotDoThis: "§c§lHey! §7You cannot do this :<"
