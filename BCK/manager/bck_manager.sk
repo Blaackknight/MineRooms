@@ -1,0 +1,899 @@
+on load:
+    set {_list::*} to {skripts::*}
+    if {_list::*} contains "core.sk":
+        send "§6[§4BCK§6]§r Loading manager..." to console
+        send "§6[§4BCK§6/§5Manager§6]§r Loaded successfully !" to console
+        load yaml "plugins/Skript/scripts/BCK/manager/config.yml" as "bck.manager.config"
+        load yaml "plugins/Skript/scripts/BCK/manager/data.yml" as "bck.manager.data"
+    else:
+        broadcast "§6[§4BCK§6/§5Manager§6]§r Script loading cancel It requires (core.sk)"
+        unload script file "bck_manager.sk"
+        unload script file "bck_manager_debug.sk"
+function randomUUID() :: text:
+    add "a", "b", "c", "d", "e", "f", "0", "1", "2", "3", "4", "5", "6", "7", "8" and "9" to {_chars::*}
+    set {_uuid} to a random element out of {_chars::*}
+    loop 35 times:
+        if loop-number = 8, 13, 18 or 23:
+            set {_uuid} to "%{_uuid}%-"
+        else:
+            set {_uuid} to "%{_uuid}%%a random element out of {_chars::*}%"
+    return {_uuid}
+function managerGuiMain(player: player):
+    set {_list::*} to folderList("plugins/Skript/scripts/BCK/manager/")
+
+    loop {_list::*}:
+        set {_f} to loop-value
+        #broadcast "%{_f}%"
+        set {_v} to managerAddonExist({_f})
+        #if {_v} is true:
+        add {_f} to {_verif::*}
+    #broadcast "%{_verif::*}%"
+    set {_gn} to yaml value "data.gui.title" from "bck.manager.config"
+    set {_gs} to yaml value "data.gui.size" from "bck.manager.config"
+    set {_gs} to "%{_gs}%" parsed as number
+    set {_gui} to genericGui({_gn}, {_gs})
+    set {_slot} to 10
+    loop {_verif::*}:
+        set {_ii} to yaml value "data.gui.%loop-value%.item" from "bck.manager.config"
+        set {_nn} to yaml value "data.gui.%loop-value%.name" from "bck.manager.config"
+        if {_ii} is not set:
+            set {_i} to barrier
+        else:
+            set {_i} to {_ii} parsed as item
+        if {_nn} is not set:
+            set {_n} to type of {_i}
+        else:
+            set {_n} to {_nn}
+        #broadcast "%{_i}%"
+        #broadcast "%{_n}%"
+        set {_i} to {_i} named {_n}
+        #broadcast "%{_i}%"
+        set {_lore::*} to yaml list "data.gui.%loop-value%.lore" from "bck.manager.config"
+        if {_lore::*} is set:
+            set {_n} to 1
+            loop {_lore::*}:
+                add 1 to {_n}
+            loop {_n} times:
+                set {_id} to loop-number
+                set line {_id} of lore of {_i} to {_lore::%{_id}%}
+        set slot {_slot} of {_gui} to {_i}
+        if {_slot} = 16 or 25 or 34 or 43 or 52 or 61 or 70:
+            add 3 to {_slot}
+        else:
+            add 1 to {_slot}
+        
+        #broadcast {_i}
+        #give {_i} to {_player}
+    open {_gui} to {_player}
+    userData({_player}, "data.inv", "set", "manager.main")
+
+command /manager:
+    trigger:
+        managerGuiMain(player)
+function guiMain(player: player, type: text):
+    if {_type} is "grimhunt":
+        set {_gn} to managerConfig("data.gui.%{_type}%.guiName")
+        set {_gui} to genericGui({_gn}, 3, true)
+        set {_i} to compass named "§4§lHunters"
+        set slot 11 of {_gui} to {_i}
+        set {_ii} to rabbit foot named "§a§lRunners"
+        set slot 15 of {_gui} to {_ii}
+        open {_gui} to {_player}
+        userData({_player}, "data.inv", "set", "manager.%{_type}%.main")
+    else if {_type} is "other":
+        set {_others::*} to fileList("plugins/Skript/scripts/BCK/manager/other/")
+        set {_gn} to managerConfig("data.gui.%{_type}%.guiName")
+        set {_gs} to listCounter({_others::*}) / 9
+        set {_data::*} to "%{_gs}%" split by "."
+        set {_gs} to {_data::1}
+        set {_gs} to {_gs} parsed as number
+        set {_gs} to {_gs} + 2
+        set {_oItem} to managerConfig("data.gui.config.%{_type}%.item")
+        set {_oItem} to {_oItem} parsed as item
+        set {_gui} to genericGui({_gn}, {_gs}, true)
+        set {_slot} to 0
+        loop {_others::*}:
+            set {_l} to loop-value
+            set {_n} to loop-value
+            replace ".sk" with "" in {_n}
+
+            set {_i} to {_oItem} named {_n}
+            set slot {_slot} of {_gui} to {_i}
+            add 1 to {_slot}
+        
+        open {_gui} to {_player}
+        userData({_player}, "data.inv", "set", "manager.%{_type}%.main")
+    else if {_type} is "recipe":
+        set {_r} to managerAddonExist({_type})
+        if {_r} is true:
+            set {_list::*} to yaml list "data.recipes" from "bck.manager.%{_type}%.data"
+            set {_gn} to managerConfig("data.gui.%{_type}%.guiName")
+            set {_gs} to  managerConfig("data.gui.config.size")
+            set {_gs} to {_gs} parsed as number
+            if {_gs} >= 10:
+                set {_gs} to listCounter({_list::*}) / 2
+            set {_slot} to 0
+            set {_gui} to genericGui({_gn}, {_gs}, true)
+            loop {_list::*}:
+                set {_l} to loop-value
+                set {_data::*} to {_l} split by "|"
+                set {_t} to {_data::2} 
+                set {_n} to {_data::3}
+                set {_t} to {_t} parsed as item
+                set {_i} to {_t} named colored {_n}
+                set {_give} to 1
+                #broadcast "%{_t}% | %{_n}% -> %{_i}%"
+                set {_l1} to line 1 of lore of {_i}
+                set {_l2} to line 2 of lore of {_i}
+                set {_l3} to line 3 of lore of {_i}
+                set {_l4} to line 4 of lore of {_i}
+                set {_l5} to line 5 of lore of {_i}
+                set {_l6} to line 6 of lore of {_i}
+                set {_l7} to line 7 of lore of {_i}
+                set {_l8} to line 8 of lore of {_i}
+                set {_l9} to line 9 of lore of {_i}
+                set {_l10} to line 10 of lore of {_i}
+                set {_l11} to line 11 of lore of {_i}
+                set {_l12} to line 12 of lore of {_i}
+                set {_l13} to line 13 of lore of {_i}
+                set {_l14} to line 14 of lore of {_i}
+                set {_l15} to line 15 of lore of {_i}
+                set {_l16} to line 16 of lore of {_i}
+                set {_l17} to line 17 of lore of {_i}
+                set {_l18} to line 18 of lore of {_i}
+                set {_l19} to line 19 of lore of {_i}
+                set {_l20} to line 20 of lore of {_i}
+                if {_l20} is set:
+                    set {_give} to 21
+                else if {_l19} is set:
+                    set {_give} to 20
+                else if {_l19} is set:
+                    set {_give} to 19
+                else if {_l19} is set:
+                    set {_give} to 18
+                else if {_l18} is set:
+                    set {_give} to 17
+                else if {_l17} is set:
+                    set {_give} to 16
+                else if {_l16} is set:
+                    set {_give} to 15
+                else if {_l15} is set:
+                    set {_give} to 14
+                else if {_l14} is set:
+                    set {_give} to 13
+                else if {_l13} is set:
+                    set {_give} to 12
+                else if {_l12} is set:
+                    set {_give} to 11
+                else if {_l11} is set:
+                    set {_give} to 10
+                else if {_l10} is set:
+                    set {_give} to 9
+                else if {_l9} is set:
+                    set {_give} to 8
+                else if {_l8} is set:
+                    set {_give} to 7
+                else if {_l7} is set:
+                    set {_give} to 6
+                else if {_l6} is set:
+                    set {_give} to 5
+                else if {_l5} is set:
+                    set {_give} to 4
+                else if {_l4} is set:
+                    set {_give} to 3
+                else if {_l3} is set:
+                    set {_give} to 2
+                else if {_l2} is set:
+                    set {_give} to 1
+                set line {_give} of lore of {_i} to managerConfig("data.gui.config.recipe.giveLore")
+                set slot {_slot} of {_gui} to {_i}
+                add 1 to {_slot}
+            open {_gui} to {_player}
+            userData({_player}, "data.inv", "set", "manager.%{_type}%.main")
+    else if {_type} is "userdata":
+        set {_userdatas::*} to fileList("plugins/Skript/scripts/BCK/manager/userdata/", "yml")
+        set {_gn} to managerConfig("data.gui.%{_type}%.guiName")
+        set {_gs} to  managerConfig("data.gui.config.size")
+        set {_gs} to {_gs} parsed as number
+        if {_gs} >= 10:
+            set {_gs} to listCounter({_userdatas::*}) / 2
+        set {_oItem} to managerConfig("data.gui.config.%{_type}%.item")
+        set {_oItem} to {_oItem} parsed as item
+        set {_gui} to genericGui({_gn}, {_gs}, true)
+        set {_slot} to 0
+        loadUserdata()
+        loop {_userdatas::*}:
+            if loop-value contain "<none>":
+                stop
+            set {_l} to loop-value
+            set {_n} to loop-value
+            replace ".yml" with "" in {_n}
+            set {_p} to {_n} parsed as offline player
+            set {_i} to {_p}'s skull named {_n}
+            loop yaml node keys "data" from "bck.userdata.%{_n}%":
+                add loop-node to {_list::*}
+            loop yaml node keys "player" from "bck.userdata.%{_n}%":
+                add loop-node to {_xlist::*}
+            #broadcast {_list::*}
+            set {_line} to 1
+            loop {_list::*}:
+                set {_t} to userData({_p}, "%loop-value-2%")
+                if {_t} is not set:
+                    set {_t} to "§n??"
+                set line {_line} of lore of {_i} to "§b§l%loop-value-2%: §7%{_t}%"
+                #broadcast "%{_p}% => %{_line}% => %loop-value-1%"
+                add 1 to {_line}
+            loop {_xlist::*}:
+                set {_t} to userData({_p}, "%loop-value-2%")
+                if {_t} is not set:
+                    set {_t} to "§n??"
+                set line {_line} of lore of {_i} to "§d§l%loop-value-2%: §7%{_t}%"
+                #broadcast "%{_p}% => %{_line}% => %loop-value-1%"
+                add 1 to {_line}
+            set slot {_slot} of {_gui} to {_i}
+            add 1 to {_slot}
+            clear {_list::*}
+            clear {_xlist::*}
+        
+        open {_gui} to {_player}
+        userData({_player}, "data.inv", "set", "manager.%{_type}%.main")
+    else if {_type} is "zones":
+        
+    else if {_type} is "language":
+        set {_list::*} to getLanguages()
+        set {_slot} to 0
+        set {_langCount} to listCounter({_list::*})
+        set {_gn} to managerConfig("data.gui.%{_type}%.guiName")
+        set {_n} to 1
+        set {_line} to 2
+        if {_langCount} > 9:
+            set {_n} to {_n} + 2
+        else if {_langCount} > 18:
+            set {_n} to {_n} + 3
+        else if {_langCount} > 27:
+            set {_n} to {_n} + 4
+        else if {_langCount} > 36:
+            set {_n} to {_n} + 5
+        else if {_langCount} > 45:
+            set {_n} to {_n} + 6
+        set {_gui} to genericGui({_gn}, {_n}, true)
+        loop {_list::*}:
+            set {_l} to loop-value
+            set {_i} to managerConfig("data.gui.config.%{_type}%.item")
+            set {_i} to {_i} parsed as item
+            set {_ii} to {_i} named {_l}
+            #broadcast {_l}
+            load yaml "plugins/Skript/scripts/BCK/manager/%{_type}%/language/%{_l}%.yml" as "bck.manager.%{_type}%.%{_l}%"
+            loop yaml node keys "" from "bck.manager.%{_type}%.%{_l}%":
+                add loop-node to {_nodes::*}
+                set line {_line} of lore of {_ii} to "§b-> §c§n%loop-node%"
+                add 1 to {_line}
+            # loop {_nodes::*}:
+            #     set line {_line} of lore of {_ii} to "%loop-value-2%"
+            #     add 1 to {_line}
+            set slot {_slot} of {_gui} to {_ii}
+            add 1 to {_slot}
+            set {_line} to 2
+        open {_gui} to {_player}
+        userData({_player}, "data.inv", "set", "manager.%{_type}%.main")
+    else:
+        set {_gn} to managerConfig("data.gui.%{_type}%.guiName")
+        set {_gs} to managerConfig("data.gui.config.size")
+        set {_iItem} to managerConfig("data.gui.config.install.item")
+        set {_iName} to managerConfig("data.gui.config.install.name")
+        set {_iItem} to "%{_iItem}%" parsed as item
+        set {_sItem} to managerConfig("data.gui.config.switch.item")
+        set {_sName} to managerConfig("data.gui.config.switch.name")
+        set {_sItem} to {_sItem} parsed as item
+        set {_uItem} to managerConfig("data.gui.config.uninstall.item")
+        set {_uName} to managerConfig("data.gui.config.uninstall.name")
+        set {_uItem} to {_uItem} parsed as item
+        set {_gs} to "%{_gs}%" parsed as number
+        set {_need} to managerConfig("data.gui.config.install.needInstallLore")
+        set {_desactivated} to managerConfig("data.gui.config.install.desactivatedLore")
+        set {_already} to managerConfig("data.gui.config.install.alreadyInstalledLore")
+        set {_sactivated} to managerConfig("data.gui.config.switch.activatedLore")
+        set {_sdesactivated} to managerConfig("data.gui.config.switch.desactivatedLore")
+        set {_notInstalled} to managerConfig("data.gui.config.switch.notInstalledLore")
+        set {_money} to managerAddonExist("%{_type}%")
+        set {_moneybis} to managerAddonExist("%{_type}%", true)
+        set {_gui} to genericGui({_gn}, {_gs}, true)
+        set {_install} to {_iItem} named "%{_iName}%"
+        set {_switch} to {_sItem} named "%{_sName}%"
+        set {_uninstall} to {_uItem} named "%{_uName}%"
+        if {_money} is true:
+            set line 1 of lore of {_install} to "%{_already}%"
+            set line 1 of lore of {_switch} to "%{_sactivated}%"
+        else if {_moneybis} is true:
+            set line 1 of lore of {_install} to "%{_desactivated}%"
+            set line 1 of lore of {_switch} to "%{_sdesactivated}%"
+        else:
+            set line 1 of lore of {_install} to "%{_need}%"
+            set line 1 of lore of {_switch} to "%{_notInstalled}%"
+        
+        set slot 11 of {_gui} to {_install}
+        set slot 13 of {_gui} to {_switch}
+        set slot 15 of {_gui} to {_uninstall}
+        open {_gui} to {_player}
+        userData({_player}, "data.inv", "set", "manager.%{_type}%.main")
+function loadUserdata():
+    loop files in dir "plugins/Skript/scripts/BCK/manager/userdata/":
+        set {_l} to loop-value
+        set {_data::*} to {_l} split by "manager"
+        set {_r} to {_data::2}
+        replace ".yml" with "" in {_r}
+        replace "userdata" with "" in {_r}
+        replace all "/" with "" in {_r}
+        replace all "\" with "" in {_r}
+        #broadcast "bck.userdata.%{_r}%"
+        load yaml "plugins/Skript/scripts/BCK/manager/userdata/%{_r}%.yml" as "bck.userdata.%{_r}%"
+        #broadcast yaml value "data.username" from "bck.userdata.%{_r}%"
+function guiUpdater(player: player, cat: text):
+    set {_gui} to {_player}'s current inventory
+    set {_i} to slot 11 of {_gui}
+    set {_s} to slot 13 of {_gui}
+    set {_u} to slot 15 of {_gui}
+
+    set {_ii} to {_i}
+    set {_ss} to {_s}
+    set {_list::*} to fileList("plugins/Skript/scripts/BCK/manager/%{_cat}%/")
+    set {_ne} to managerConfig("data.gui.config.install.needInstallLore")
+    set {_al} to managerConfig("data.gui.config.install.alreadyInstalledLore")
+    set {_des} to managerConfig("data.gui.config.install.desactivatedLore")
+    set {_sac} to managerConfig("data.gui.config.switch.activatedLore")
+    set {_sde} to managerConfig("data.gui.config.switch.desactivatedLore")
+    set {_sno} to managerConfig("data.gui.config.switch.notInstalledLore")
+    if {_list::*} contains "bck_%{_cat}%.sk":
+        set line 1 of lore of {_ii} to "%{_al}%"
+        set line 1 of lore of {_ss} to "%{_sac}%"
+    else if {_list::*} contains "-bck_%{_cat}%.sk":
+        set line 1 of lore of {_ii} to "%{_des}%"
+        set line 1 of lore of {_ss} to "%{_sde}%"
+    else:
+        set line 1 of lore of {_ii} to "%{_ne}%"
+        set line 1 of lore of {_ss} to "%{_sno}%"
+    
+    set slot 11 of {_gui} to {_ii}
+    set slot 13 of {_gui} to {_ss}
+    set slot 15 of {_gui} to {_u}
+function addonInstaller(player: player, item: item, cat: text):
+    set {_lore::*} to uncolored lore of {_item}
+    set {_al} to managerConfig("data.gui.config.install.alreadyInstalledLore")
+    set {_des} to managerConfig("data.gui.config.install.desactivatedLore")
+    set {_al} to uncolored "%{_al}%"
+    set {_des} to uncolored "%{_des}%"
+    if {_lore::*} doesn't contain "%{_al}%":
+        if {_lore::*} doesn't contain "%{_des}%":
+            set {_gn} to managerConfig("data.gui.%{_cat}%.guiName")
+            send "§6[§4BCK§6/%{_gn}%§6]§r §2§lInstallation.." to {_player}
+            set {_link} to "https://raw.githubusercontent.com/Blaackknight/BCK/main/BCK"
+            if {_cat} is "language":
+                set {_list::*} to yaml list "data.gui.config.language.languages" from "bck.manager.config"
+                loop {_list::*}:
+                    set {_l} to "%loop-value%"
+                    if file "plugins/Skript/scripts/BCK/manager/%{_cat}%/language/%{_l}%.yml" doesn't exist:
+                        download file from "%{_link}%/manager/%{_cat}%/language/%{_l}%.yml" to file "plugins/Skript/scripts/BCK/manager/%{_cat}%/language/%{_l}%.yml"
+            if file "plugins/Skript/scripts/BCK/manager/%{_cat}%/bck_%{_cat}%.sk" doesn't exist:
+                download file from "%{_link}%/manager/%{_cat}%/bck_%{_cat}%.sk" to file "plugins/Skript/scripts/BCK/manager/%{_cat}%/bck_%{_cat}%.sk"
+            if file "plugins/Skript/scripts/BCK/manager/%{_cat}%/config.yml" doesn't exist:
+                download file from "%{_link}%/manager/%{_cat}%/config.yml" to file "plugins/Skript/scripts/BCK/manager/%{_cat}%/config.yml"
+            if file "plugins/Skript/scripts/BCK/manager/%{_cat}%/data.yml" doesn't exist:
+                download file from "%{_link}%/manager/%{_cat}%/data.yml" to file "plugins/Skript/scripts/BCK/manager/%{_cat}%/data.yml"
+            wait 1 seconds
+            send "§6[§4BCK§6/%{_gn}%§6]§r §2Installation §eréussi." to {_player}
+            guiUpdater({_player}, {_cat})
+function fileSwitch(player: player, cat: text):
+    set {_sw} to managerAddonExist({_cat})
+    set {_list::*} to fileList("plugins/Skript/scripts/BCK/manager/%{_cat}%/")
+    set {_gn} to managerConfig("data.gui.%{_cat}%.guiName")
+    if {_sw} is true:
+        loop {_list::*}:
+            disable skript "BCK/manager/%{_cat}%/%loop-value%"
+        send "§6[§4BCK§6/%{_gn}%§6]§r §cDésactivation§e réussi !" to {_player}
+        wait 0.1 seconds
+        guiUpdater({_player}, {_cat})
+    else:
+        if file "plugins/Skript/scripts/BCK/manager/%{_cat}%/bck_%{_cat}%.sk" doesn't exist:
+            if file "plugins/Skript/scripts/BCK/manager/%{_cat}%/-bck_%{_cat}%.sk" doesn't exist:
+                stop
+        loop {_list::*}:
+            enable skript "BCK/manager/%{_cat}%/%loop-value%"
+        send "§6[§4BCK§6/%{_gn}%§6]§r §aActivation§e réussi !" to {_player}
+        wait 0.1 seconds
+        guiUpdater({_player}, {_cat})
+function addonDeleter(player: player, cat: text):
+    set {_dw} to managerAddonExist({_cat})
+    set {_list::*} to fileList("plugins/Skript/scripts/BCK/manager/%{_cat}%/", ".sk", true)
+    if {_dw} is true:
+        set {_gn} to managerConfig("data.gui.%{_cat}%.guiName")
+        send "§6[§4BCK§6/%{_gn}%§6]§r §4Suppréssion§e de money.." to {_player}
+        loop {_list::*}:
+            set {_l} to loop-value
+            set {_data::*} to {_l} split by "/"
+            set {_r} to "%{_data::3}%/%{_data::4}%/%{_data::5}%/%{_data::6}%/%{_data::7}%/%{_cat}%/%{_data::9}%"
+            delete file "%{_r}%"
+        wait 1 second
+        send "§6[§4BCK§6/%{_gn}%§6]§r §4Suppréssion §aréussi§e !" to {_player}
+        guiUpdater({_player}, "money")
+function HuntersGui(player: player):
+    set {_gui} to genericGui("§4§lHunters", 3, true)
+    open {_gui} to {_player}
+    userData({_player}, "data.inv", "set", "manager.grimhunt.hunters")
+function RunnersGui(player: player):
+    set {_gui} to genericGui("§a§lHunters", 3, true)
+    open {_gui} to {_player}
+    userData({_player}, "data.inv", "set", "manager.grimhunt.runners")
+on inventory click: 
+    if userData(player, "data.inv") is "manager.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            #send {_t} to player
+            #send {_t} to player
+            if "%{_t}%" contain "paper":
+                if {_u} contain "Money":
+                    guiMain(player, "money")
+            else if "%{_t}%" is "dragon egg":
+                if {_u} contain "Grimhunt":
+                    guiMain(player, "grimhunt")
+            else if "%{_t}%" is "writable book":
+                if {_u} contain "Account":
+                    guiMain(player, "account")
+            else if "%{_t}%" contain "player head":
+                if {_u} contain "Clan":
+                    guiMain(player, "clan")
+            else if "%{_t}%" is "chest":
+                if {_u} contain "Contener":
+                    guiMain(player, "contener")
+            else if "%{_t}%" contain "red wool":
+                if {_u} contain "Elevator":
+                    guiMain(player, "elevator")
+            else if "%{_t}%" is "netherite pickaxe":
+                if {_u} contain "Hammer":
+                    guiMain(player, "hammer")
+            else if "%{_t}%" contain "zombie head":
+                if {_u} contain "Mob":
+                    guiMain(player, "mob")
+            else if "%{_t}%" is "feather":
+                if {_u} contain "Other":
+                    guiMain(player, "other")
+            else if "%{_t}%" is "knowledge book":
+                if {_u} contain "recipe":
+                    guiMain(player, "recipe")
+            else if "%{_t}%" is "nametag":
+                if {_u} contain "Userdata":
+                    guiMain(player, "userdata")
+            else if "%{_t}%" is "brick wall":
+                if {_u} contain "Zones":
+                    guiMain(player, "zones")
+            else if "%{_t}%" is "ender chest":
+                if {_u} contain "Box":
+                    guiMain(player, "box")
+            else if "%{_t}%" is "ink sac":
+                if {_u} contain "Attributs":
+                    guiMain(player, "attributs")
+            else if "%{_t}%" is "iron block":
+                if {_u} contain "Turret":
+                    guiMain(player, "turret")
+            else if "%{_t}%" is "white shulker box":
+                if {_u} contain "Backpack":
+                    guiMain(player, "backpack")
+            else if "%{_t}%" is "ender rod":
+                if {_u} contain "Crypter":
+                    guiMain(player, "crypter")
+            else if "%{_t}%" is "amethyst shard":
+                if {_u} contain "Language":
+                    guiMain(player, "language")
+            else if "%{_t}%" contains "ender dragon head":
+                if {_u} contain "Head Collector":
+                    guiMain(player, "head_collector")
+    else if userData(player, "data.inv") is "manager.grimhunt.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" contain "compass":
+                if {_u} contain "Hunters":
+                    HuntersGui(player)
+            else if "%{_t}%" contain "rabbit":
+                if {_u} contain "Runners":
+                    RunnersGui(player)
+    else if userData(player, "data.inv") is "manager.grimhunt.hunters":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    guiMain(player, "grimhunt")
+    else if userData(player, "data.inv") is "manager.grimhunt.runners":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    guiMain(player, "grimhunt")
+    else if userData(player, "data.inv") is "manager.money.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "money")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "money")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "money")
+    else if userData(player, "data.inv") is "manager.account.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "account")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "account")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "account")
+    else if userData(player, "data.inv") is "manager.box.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "box")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "box")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "box")
+    else if userData(player, "data.inv") is "manager.clan.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "clan")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "clan")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "clan")
+    else if userData(player, "data.inv") is "manager.contener.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "contener")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "contener")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "contener")
+    else if userData(player, "data.inv") is "manager.elevator.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "elevator")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "elevator")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "elevator")
+    else if userData(player, "data.inv") is "manager.hammer.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "hammer")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "hammer")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "hammer")
+    else if userData(player, "data.inv") is "manager.mob.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "mob")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "mob")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "mob")
+    else if userData(player, "data.inv") is "manager.attributs.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "attributs")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "attributs")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "attributs")
+    else if userData(player, "data.inv") is "manager.other.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+    else if userData(player, "data.inv") is "manager.head_collector.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "head_collector")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "head_collector")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "head_collector")
+    else if userData(player, "data.inv") is "manager.recipe.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else:
+                set {_list::*} to yaml list "data.recipes" from "bck.manager.recipe.data"
+                set {_iii} to {_t} named {_n}
+                loop {_list::*}:
+                    set {_data::*} to loop-value split by "|"
+                    set {_tt} to {_data::2}
+                    set {_n} to {_data::3}
+                    set {_tt} to {_tt} parsed as item
+                    set {_ii} to {_tt} named colored {_n}
+                    if {_iii} is {_ii}:
+                        set {_lore::*} to lore of {_i}
+                        set {_lore} to managerConfig("data.gui.config.recipe.giveLore")
+                        if "%{_lores::*}%" doesn't contain {_lore}:
+                            add loop-value-2 to {_lists::*}
+                        set {_line} to 1
+                        loop {_lists::*}:
+                            set line {_line} of lore of {_i} to loop-value-2
+                            add 1 to {_line}
+                        give 1 of {_i} to player
+                        exit loop
+    else if userData(player, "data.inv") is "manager.turret.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "turret")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "turret")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "turret")
+    else if userData(player, "data.inv") is "manager.backpack.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "backpack")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "backpack")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "backpack")
+    else if userData(player, "data.inv") is "manager.crypter.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+            else if "%{_t}%" is {_ins}:
+                if {_u} contain "Installer":
+                    addonInstaller(player, {_i}, "crypter")
+            else if "%{_t}%" contain {_swi}:
+                if {_u} contain "Activé":
+                    fileSwitch(player, "crypter")
+            else if "%{_t}%" contain {_uni}:
+                if {_u} contain "Désinstaller":
+                    addonDeleter(player, "crypter")
+    else if userData(player, "data.inv") is "manager.userdata.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+    else if userData(player, "data.inv") is "manager.zones.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)
+    else if userData(player, "data.inv") is "manager.language.main":
+        cancel event
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to uncolored {_n}
+        if {_t} is not air:
+            set {_ins} to managerConfig("data.gui.config.install.item")
+            set {_swi} to managerConfig("data.gui.config.switch.item")
+            set {_uni} to managerConfig("data.gui.config.uninstall.item")
+            if "%{_t}%" contain "barrier":
+                if {_u} contain "Back":
+                    managerGuiMain(player)

@@ -1,0 +1,161 @@
+data:
+    money: "₣"
+    fakePlugins:
+        - §aGrim Hunt
+        - §aAnti-Xray
+    gui:
+        title: "§4§lBCK Manager"
+        size: 5
+        config:
+            size: 3
+            install:
+                item: minecart
+                name: "§2§lInstaller"
+                needInstallLore: "§7Prêt à l'installation"
+                desactivatedLore: "§7Désactivé"
+                alreadyInstalledLore: "§7Déja installer"
+            switch:
+                item: lever
+                name: "§6§lActivé/Désactivé"
+                activatedLore: "§eEtat: §aActivé"
+                desactivatedLore: "§eEtat: §cDésactivé"
+                notInstalledLore: "§eEtat: §7Non Installé"
+            uninstall:
+                item: tnt
+                name: "§4§lDésinstaller"
+                needInstallLore: "§7Doit être installer"
+            other:
+                item: book
+            userdata:
+                item: player head
+            recipe:
+                giveLore: "§aLeft click to give"
+            language:
+                item: echo shard
+                languages:
+                    - ar
+                    - cn
+                    - da
+                    - de
+                    - el
+                    - en
+                    - es
+                    - fi
+                    - fr
+                    - he
+                    - hi
+                    - it
+                    - jp
+                    - kr
+                    - nl
+                    - no
+                    - pl
+                    - pt
+                    - ru
+                    - sv
+                    - tr 
+        grimhunt:
+            item: dragon egg
+            name: "§5⟪ Grimhunt ⟫"
+            guiName: "§5Grimhunt"
+            lore:
+        debug:
+            item: barrier
+            name: "§a⟪ §nDebug§r §a⟫"
+            guiName: "§a§nDebug"
+        account:
+            item: writable book
+            name: "§d⟪ Account ⟫"
+            guiName: "§dAccount"
+            lore:
+        attributs:
+            item: ink sac
+            name: "§9⟪ Attributs ⟫"
+            guiName: "§9Attributs"
+            lore:
+        backpack:
+            item: white shulker box
+            name: "§2§l⟪ Backpack ⟫"
+            guiName: "§2Backpack"
+            lore:
+        box:
+            item: ender chest
+            name: "§1⟪ Box ⟫"
+            guiName: "§1Box"
+            lore:
+        clan:
+            item: player head
+            name: "§1⟪ Clan ⟫"
+            guiName: "§1Clan"
+            lore:
+        contener:
+            item: chest
+            name: "§3⟪ Contener ⟫"
+            guiName: "§3Contener"
+            lore:
+        elevator:
+            item: red wool
+            name: "§7⟪ Elevator ⟫"
+            guiName: "§7Elevator"
+            lore:
+        hammer:
+            item: netherite pickaxe
+            name: "§8⟪ Hammer ⟫"
+            guiName: "§8Hammer"
+            lore:
+        mob:
+            item: zombie head
+            name: "§a⟪ Mob ⟫"
+            guiName: "§aMob"
+            lore:
+        money:
+            item: paper
+            name: "§b⟪ Money ⟫"
+            guiName: "§bMoney"
+            lore:
+        other:
+            item: feather
+            name: "§f⟪ Other ⟫"
+            guiName: "§fOther"
+            lore:
+            - "§fOther System.."
+        recipe:
+            item: knowledge book
+            name: "§a⟪ Recipe ⟫"
+            guiName: "§aRecipe"
+            lore:
+            - "§aRecipe System.."
+        turret:
+            item: iron block
+            name: "§e⟪ Turret ⟫"
+            guiName: "§eTurret"
+            lore:
+        userdata:
+            item: name tag
+            name: "§e⟪ Userdata ⟫"
+            guiName: "§eUserdata"
+            lore:
+            - "§fUsers Database"
+        zones:
+            item: brick wall
+            name: "§2⟪ Zones ⟫"
+            guiName: "§2Zones"
+            lore:
+        crypter:
+            item: end rod
+            name: "§f§l⟪ Crypter ⟫"
+            guiName: "§f§lCrypter"
+            lore:
+                - test
+                - lol
+                - ta mère
+        language:
+            item: amethyst shard
+            name: "§5⟪ Language ⟫"
+            guiName: "§5Language"
+            lore:
+        head_collector:
+            item: ender dragon head
+            name: "§6⟪ Head Collector ⟫"
+            guiName: "§6Head Collector"
+            lore:

@@ -1,0 +1,262 @@
+on load:
+    bckManagerLoad()
+    wait 1 seconds
+    set {sbm} to yaml value "data.money" from "bck.manager.config"
+    set {skn} to "§4BCK§r"
+
+    addServerPermission("op")
+    addServerPermission("server.send_message")
+    addServerPermission("block.place")
+    addServerPermission("block.break")
+    addServerPermission("item.drop")
+    addServerPermission("item.pickup")
+    addServerPermission("player.move")
+    addServerPermission("player.jump")
+    addServerPermission("player.craft")
+    addServerPermission("player.attack")
+    addServerPermission("server.command")
+    addServerPermission("server.owner")
+    addServerPermission("server.command.grimhunt")
+    addServerPermission("server.command.msg")
+    addServerPermission("server.command.tell")
+    addServerPermission("server.command.teammsg")
+    addServerPermission("server.command.tm")
+    addServerPermission("server.command.me")
+    addServerPermission("bypass.loglevel")
+    addServerPermission("bypass.op")
+    addServerPermission("bypass.deop")
+    addServerPermission("bypass.kick")
+    addServerPermission("bypass.ban")
+
+    addDefaultPermission("server.send_message")
+    addDefaultPermission("block.place")
+    addDefaultPermission("block.break")
+    addDefaultPermission("item.drop")
+    addDefaultPermission("item.pickup")
+    addDefaultPermission("player.move")
+    addDefaultPermission("player.craft")
+    addDefaultPermission("player.attack")
+    addDefaultPermission("server.command")
+    addDefaultPermission("server.command.msg")
+    addDefaultPermission("server.command.tell")
+    addDefaultPermission("server.command.teammsg")
+    addDefaultPermission("server.command.tm")
+    addDefaultPermission("server.command.me")
+
+    set {spawnCoordinates::*} to getCoordinateSeparate("%{spawn}%")
+on inventory close:
+    #wait 1 tick
+    userData(player, "data.inv", "set", "false")
+on unload:
+    delete {clan.ranks::*}
+    delete {server.perms::*}
+    delete {drawer.lore.blacklist::*}
+    delete {drawer.item.blacklist::*}
+    delete {generators.types::*}
+    delete {sellers::*}
+    delete {letters::*}
+on break:
+    if player is not set:
+        set {_player} to "Server"
+    else:
+        set {_player} to selector(player)
+    if hasPermission(player, "block.break") is false:
+        cancel event
+        send lang("core.noPermission", player)
+    else:
+        logCustom("%{_player}% has just breaking the §7%event-block%", 5)
+on place:
+    if player is not set:
+        set {_player} to "Server"
+    else:
+        set {_player} to selector(player)
+    if hasPermission(player, "block.place") is false:
+        cancel event
+        send lang("core.noPermission", player)
+    else:
+        if "%type of event-block%" is "bite":
+            cancel event
+        else:
+            logCustom("%{_player}% has just placing the §7%event-block%", 5)
+on drop:
+    if hasPermission(player, "item.drop") is false:
+        cancel event
+        send lang("core.noPermission", player)
+on pickup:
+    if hasPermission(player, "item.pickup") is false:
+        cancel event
+        #send "§c§lHey! §7Tu n'a pas la permission :|"
+on command:
+    set {_args::*} to arguments
+    set {_v} to false
+    set {_p::*} to all players
+    if {_p::*} contain sender:
+        set {_v} to true
+        set {_player} to selector(player)
+    else if "%sender%" is "@":
+        set {_player} to "@"
+    else:
+        set {_player} to "Server"
+    if {_v} is true:
+        if hasPermission(player, "server.command.%command%") is false:
+            cancel event
+            send lang("core.noPermission", player)
+            #broadcast {_player}
+        
+    if {_player} is "Server":
+        set {_co} to randomColor()
+        if {_co} is "§r" or "§f":
+            set {_co} to randomColor()
+        if {_co} is "§r" or "§f":
+            set {_co} to randomColor()
+        superLog("§6[§4BCK§6]§r %{_co}%§l%{_player}%§r has just executed the command §7/%complete command%", "4")
+    else if {_player} is not "@":
+        if hasPermission(player, "bypass.loglevel", true) is true:
+            stop
+        superLog("§6[§4BCK§6]§r §7%selector(player)%§r has just executed the command §7/%complete command%", "4")
+on command "/pl":
+    if hasPermission(player, "server.owner") is false:
+        cancel event
+        fakePluginsList(player)
+function fakePluginsList(player: player):
+    set {_fp::*} to yaml list "data.fakePlugins" from "bck.manager.config"
+    set {_c} to listCounter({_fp::*})
+    set {_txt} to ""
+    set {_w} to "Plugin"
+    if {_c} > 1:
+        set {_w} to "Plugins"
+    loop {_fp::*}:
+        set {_x} to loop-value
+        if loop-index is "1":
+            set {_txt} to "%{_x}%"
+        else:
+            set {_txt} to "%{_txt}%§r, %{_x}%"
+    send "%{_w}% (%{_c}%): %{_txt}%" to {_player}
+on damage:
+    if "%type of victim%" is "player":
+        set {_v} to victim
+        set {_a} to attacker
+        if damage cause is fall:
+            set {_a} to "fall"
+        logCustom("%{_v}% has just taken damage by §7%{_a}% (%damage%§4♥§7)§r at %event-location%", 5)
+on drop:
+    logCustom("%player% has just dropped a §7%event-item%§r on the ground at %event-location%", 5)
+on pickup:
+    logCustom("%player% has just pickup a §7%event-item%§r at %event-location%", 5)
+on enderman pickup:
+    logCustom("§l§5Mr Enderman§r just stole a §7%event-block%§r at %event-location%", 5)
+on explode:
+    logCustom("§4Explosion§r at %event-location%", 5)
+on fade of snow layer:
+    logCustom("§7%event-block%§r has just melted at %event-location%", 5)
+on fade of ice:
+    logCustom("§7%event-block%§r has just melted at %event-location%", 5)
+on player fish:
+    logCustom("%player% has just fished", 5)
+on grow:
+    logCustom("§7%event-block%§r just sprouted at %event-location%", 5)
+on tool break:
+    logCustom("%selector(player)%'s tool just broken (§7%event-item%§r)", 5)
+on item despawn:
+    logCustom("§7%event-item%§r just disappeared at %event-location%", 5)
+on explosion prime:
+    if {config.explosion} is false:
+        cancel event
+        set block at event-location to grass block
+        set block 1 above event-location to oxeye daisy
+        play sound "entity.pig.hurt" with volume 1 at event-location
+        delete event-entity
+        kill event-entity
+on craft:
+    if hasPermission(player, "player.craft") is false:
+        cancel event
+        #send "§c§lHey! §7Tu n'a pas la permission :|"
+on player move:
+    if hasPermission(player, "player.move") is false:
+        cancel event
+    set {_v} to velocity of player
+    set {_data::*} to "%{_v}%" split by ","
+    set {_y} to {_data::2}
+    replace " y: " with "" in {_y}
+    set {_y} to {_y} parsed as number
+    #send action bar "%{_y}%" to player
+    if {_y} is less than -0.08:
+        set {jump.%player%} to true
+    else if {jump.%player%} is true:
+        set {jump.%player%} to false
+        #send "§c§lHey! §7Tu n'a pas la permission :|"
+every minecraft day in "world":
+    add 1 to {world.day}
+    logCustom("§71§r added to day", 4)
+    logCustom("§71§r added to day", 5)
+function bckManagerLoad():
+    load yaml "plugins/Skript/scripts/BCK/manager/config.yml" as "bck.manager.config"
+    load yaml "plugins/Skript/scripts/BCK/manager/data.yml" as "bck.manager.data"
+function bckManagerEditfiles(source: text, find: text="data", mode: text="extract", data: text="") :: text:
+	if {_mode} is "extract":
+		set {_result} to yaml value "%{_find}%" from "bck.%{_source}%"
+		if {_result} isn't set:
+			if {_data} isn't empty:
+				set {_result} to {_data}
+	else if {_mode} is "delete":
+		set {_result} to yaml value "%{_find}%" from "bck.%{_source}%"
+		if {_result} is set:
+			delete yaml value "%{_find}%" from "bck.%{_source}%"
+			save yaml "bck.%{_source}%"
+	else:
+		set yaml value "%{_find}%" from "bck.%{_source}%" to {_data}
+		save yaml "bck.%{_source}%"
+	return {_result}
+function backpackGuiSaver(player: player, gui: inventory):
+    set {_i} to {_player}'s tool
+    set {_storage::*} to items of {_gui}
+    set yaml list "data.inventory.%{_player}'s uuid%.%backpackGetUUID({_i})%" from "bck.manager.backpack.data" to {_storage::*}
+    save yaml "bck.manager.backpack.data"
+function backpackGetTier(item: item) :: number:
+    set {_l} to line 3 of {_item}'s lore
+    set {_l} to uncolored {_l}
+    replace "⇾ Tier: " with "" in {_l}
+    set {_l} to {_l} parsed as number
+    return {_l}
+function backpackGetUUID(item: item) :: string:
+    set {_l} to line 5 of {_item}'s lore
+    set {_l} to uncolored {_l}
+    return {_l}
+on command "/op":
+    if player is set:
+        if hasPermission(player, "bypass.op", true) is false:
+            cancel event
+            send lang("core.cannotDoThis", player)
+on command "/deop":
+    if player is set:
+        if hasPermission(player, "bypass.deop", true) is false:
+            cancel event
+            send lang("core.cannotDoThis", player)
+on command "/kick":
+    if player is set:
+        if hasPermission(player, "bypass.kick", true) is false:
+            cancel event
+            send lang("core.cannotDoThis", player)
+on command "/ban":
+    if player is set:
+        if hasPermission(player, "bypass.ban", true) is false:
+            cancel event
+            send lang("core.cannotDoThis", player)
+on damage:
+    set {_a} to attacker
+    if "%{_a}%" is "player":
+        if hasPermission({_a}, "player.attack") is false:
+            cancel event
+            send lang("core.noPermission", {_a}) to {_a}
+on place:
+    set {_o} to event-location
+    set {_a} to player
+    set {_b} to event-block
+    addTempBlock(player, {_b})
+    getTempCoordinate(player, {_b})
+on break:
+    set {_o} to event-location
+    set {_a} to player
+    set {_b} to event-block
+    getTempCoordinate(player, {_b})
+    removeTempBlock(player, {_b})

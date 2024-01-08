@@ -1,0 +1,35 @@
+language:
+    unknownOption: "§cOption inconnue"
+    languageNotFound: "§cLangage non trouvé.."
+    noPermission: "§c§lHey! §7Tu n'a pas la permission :|"
+    languageClientSetTo: "§eVotre §llanguage§r§l vient d'être §achanger§e pour§r"
+    languageServerSetTo: "§eLe language de §4§lBCK§e coté serveur vient d'être §achanger§e pour§r"
+manager:
+other:
+mineRooms:
+core:
+    functions:
+        commandError:
+            1: "§cCommande inconnue ou incomplète, voir ci-dessous pour l'erreur"
+            2: "§c<--[ICI]"
+    command:
+        bck:
+            rules:
+                gui:
+                    title: "Règles du serveur"
+                updater:
+                    enabled: "§2Activé"
+                    disabled: "§4Disabled"
+                    status: "§eStatut:"
+                    forced: "§3§l§nForcé"
+                    lore:
+                        tnt: "§eGérer les §cexplosions"
+                        commandBlock: "§eGérer les §dblocs de commande"
+                        pvp: "§eGérer le §1pvp"
+            god:
+                activated: "§6[§4BCK§6]§r §eMode dieux §aactivé §e!"
+                removed: "§6[§4BCK§6]§r §eMode dieux §cdésactivé §e!"
+debug:
+    afterDebug: "§6[§4BCK§6/§3Debug§6]§r §eMinuterie terminée"
+    beforeDebug: "§6[§4BCK§6/§3Debug§6]§r §eDémarrage de la minuterie"
+    actionbar: "§6[§4BCK§6/§3Debug§6]§r §7Temps restant:§r"

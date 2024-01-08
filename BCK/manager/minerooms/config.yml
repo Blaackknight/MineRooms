@@ -1,0 +1,23 @@
+data:
+    minerooms:
+        load:
+            options:
+            - "ranks:"
+            - "    wanderer:"
+            - "        name: \"<arg0>\""
+            - "        perms:"
+            - "            - server.send_message"
+            - "            - item.drop"
+            - "            - item.pickup"
+            - "            - player.move"
+            - "            - player.craft"
+            - "            - server.send_message"
+            - "            - server.send_message"
+            - "    moderator:"
+            - "        name: \"<arg0>\""
+            - "        perms:"
+            - "            - permissions.wanderer"
+            - "    administrator:"
+            - "        name: \"<arg0>\""
+            - "        perms:"
+            - "            - op"

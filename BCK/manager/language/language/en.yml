@@ -1,0 +1,45 @@
+language:
+    unknownOption: "§cUnknown option"
+    languageNotFound: "§cLanguage not found.."
+    noPermission: "§c§lHey! §7You don't have permission :|"
+    languageClientSetTo: "§eYour §llanguage§r§l has just been §achanged to§r"
+    languageServerSetTo: "§eThe §4§lBCK§e language on the server side has just been §achanged to§r"
+manager:
+other:
+grimhunt:
+core:
+    noPermission: "§c§lHey! §7You don't have permission :|"
+    cannotDoThis: "§c§lHey! §7You cannot do this :<"
+    genericNoPermission: "§c§lHey! §7You don't have permission :/"
+    functions:
+        commandError:
+            1: "§cUnknown or incomplete command, see below for error"
+            2: "§c<--[HERE]"
+    command:
+        bck:
+            rules:
+                gui:
+                    title: "Server Rules"
+                updater:
+                    enabled: "§2Enabled"
+                    disabled: "§4Disabled"
+                    status: "§eStatus:"
+                    forced: "§3§l§nForced"
+                    lore:
+                        tnt: "§eManage §cexplosions"
+                        commandBlock: "§eManage §dcommand blocks"
+                        pvp: "§eManage §1pvp"
+            god:
+                activated: "§6[§4BCK§6]§r §eGod mode §aactivated §e!"
+                removed: "§6[§4BCK§6]§r §eGod mode §cdisabled §e!"
+            op:
+                success: "§6[§4BCK§6]§r §eYou are §4op §anow§e !"
+            deop:
+                success: "§6[§4BCK§6]§r §eYou are not longer §4op §anow§e !"
+    rules:
+        pvp:
+            notAllowed: "§6[§4BCK§6]§r §l§8Hey §c! Pvp is not allowed."
+debug:
+    afterDebug: "§6[§4BCK§6/§3Debug§6]§r §eTimer finished"
+    beforeDebug: "§6[§4BCK§6/§3Debug§6]§r §eTimer starting"
+    actionbar: "§6[§4BCK§6/§3Debug§6]§r §7Time left:§r"

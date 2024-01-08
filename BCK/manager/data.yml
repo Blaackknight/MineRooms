@@ -1,0 +1,10 @@
+data:
+    server:
+        account: false
+        clan: false
+        contener: false
+        elevator: false
+        hammer: false
+        money: false
+        other: false
+        
