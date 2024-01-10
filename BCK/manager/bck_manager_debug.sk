@@ -21,6 +21,7 @@ on load:
     addServerPermission("server.command.teammsg")
     addServerPermission("server.command.tm")
     addServerPermission("server.command.me")
+    addServerPermission("server.command.minerooms_noclip")
     addServerPermission("bypass.loglevel")
     addServerPermission("bypass.op")
     addServerPermission("bypass.deop")
@@ -44,15 +45,9 @@ on load:
 
     set {spawnCoordinates::*} to getCoordinateSeparate("%{spawn}%")
 on inventory close:
-    #wait 1 tick
     userData(player, "data.inv", "set", "false")
 on unload:
-    delete {clan.ranks::*}
     delete {server.perms::*}
-    delete {drawer.lore.blacklist::*}
-    delete {drawer.item.blacklist::*}
-    delete {generators.types::*}
-    delete {sellers::*}
     delete {letters::*}
 on break:
     if player is not set:

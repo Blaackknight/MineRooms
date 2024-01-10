@@ -2,6 +2,17 @@ data:
     minerooms:
         load:
             options:
+            - "chat:"
+            - "    message: \"<<arg0>> <arg1>\""
+            - "levels:"
+            - "    -1: \"backrooms\""
+            - "    0: \"Niveau0\""
+            - "    1: \"Niveau1\""
+            - "    2: \"Niveau2\""
+            - "    3: \"Niveau3\""
+            - "    4: \"Niveau4\""
+            - "    5: \"Niveau5\""
+            - "    99: \"Niveau99\""
             - "ranks:"
             - "    default: randomGuy"
             - "    wanderer:"

@@ -107,6 +107,11 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
             else:
                 add arg-1 to {_args::*}
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+        else if arg-1 is "noclip":
+            if hasPermission(player, "server.command.minerooms_noclip") is false:
+                send lang("core.noPermission", player) to player
+                stop
+            mineroomsNoClip(player)
         else:
             add arg-1 to {_args::*}
             send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
@@ -114,7 +119,7 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
 function mineroomsLoad():
     set {_data::*} to yaml list "data.minerooms.load.options" from "bck.manager.minerooms.config"
     if file "plugins/MineRooms/config.yml" doesn't exist:
-        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization..", "6.5")
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization..", "6.4")
         create script "plugins/MineRooms/config.yml"
         write "##                                                                                                                              " at line 1 to file "plugins/MineRooms/config.yml"
         write "##                   ,,                                                                                 " at line 2 to file "plugins/MineRooms/config.yml"
@@ -139,12 +144,25 @@ function mineroomsLoad():
             write loop-value at line {_x} to file "plugins/MineRooms/config.yml"
             add 1 to {_x}
         wait 3 ticks
-        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization §nComplete§r§e !", "6.5")
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization §nComplete§r§e !", "6.4")
     wait 10 ticks
     load yaml "plugins/MineRooms/config.yml" as "bck.server.minerooms.config"
-    superLog("§6[§4BCK§6/§eMineRooms§6]§r §aLoaded file succeffully !", "6.5")
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r §aLoaded file succeffully !", "6.4")
     wait 2 ticks
-    
+
+    mineroomsData("chat.message", "set", mineroomsServerConfig("chat.message"))
+
+    loop yaml node keys "levels" from "bck.server.minerooms.config":
+        add loop-node to {_levelsList::*}
+    loop {_levelsList::*}:
+        set {_r} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_levelName} to mineroomsServerConfig("%loop-value%")
+        if {_levelName} is "<none>":
+            set {_levelName} to "??"
+        mineroomsData("%loop-value%", "set", {_levelName})
+
     loop yaml node keys "ranks" from "bck.server.minerooms.config":
         add loop-node to {_ranksList::*}
     loop {_ranksList::*}:
@@ -162,13 +180,13 @@ function mineroomsLoad():
             save "bck.manager.minerooms.data"
             clear {_rank.perms::*}
     wait 10 ticks
-    superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.5")
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.4")
 
 #                                      tab complete minerooms                                                                          #
 on tab complete of "/minerooms" or "/mr":
     if hasPermission(player, "server.command.minerooms") is false:
         stop
-    add "test" to {_data::*}
+    add "noclip" to {_data::*}
     if hasPermission(player, "op") is true:
         add "rank" to {_data::*}
     set tab completions for position 1 to {_data::*}
@@ -193,6 +211,95 @@ on join:
         mineroomsSetRank(player, "wanderer", true)
     if userData(player, "data.language") is "<none>":
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
+on first join:
+    userData(player, "minerooms.temp.firstJoin", "set", "true")
+on any move:
+    if userData(player, "minerooms.temp.firstJoin") is "true":
+        make console execute command "/mvtp %player's name% %mineroomsGetLevel(0)%"
+        userData(player, "minerooms.temp.firstJoin", "set", "false")
+on chat:
+    cancel event
+    loop all players:
+        set {_x} to loop-player
+        if {_x}'s world is player's world:
+            set {_mb} to mineroomsData("chat.message")
+            set {_mb} to "%{_mb}%"
+            set {_c} to 0
+            add player's name to {_args::*}
+            add message to {_args::*}
+            loop {_args::*}:
+                set {_v} to loop-value-2
+                replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                add 1 to {_c}
+            send formatted {_mb} to {_x}
+            send formatted "§6[§b%player's world%§6]§r %{_mb}%" to console
+function mineroomsNoClip(player: player):
+    set {_gui} to genericGui(lang("minerooms.command.noClip.gui.title", {_player}), 5, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.noClip.main")
+    open {_gui} to {_player}
+    mineroomsNoClipGuiUpdater({_player})
+function mineroomsNoClipGuiUpdater(player: player):
+    set {_gui} to {_player}'s current inventory
+    set slot 22 of {_gui} to air
+    set {_sc} to 10
+    set {_gc} to 0
+    loop 24 times:
+        if {_gc} is 10 or 19 or 28:
+            add 7 to {_gc}
+        else if {_gc} is 40:
+            add 1 to {_gc}
+        set slot {_gc} of {_gui} to yellow stained glass pane named "§l"
+        add 1 to {_gc}
+    loop yaml node keys "levels" from "bck.manager.minerooms.data":
+        add loop-node to {_levelsList::*}
+    loop {_levelsList::*}:
+        if {_sc} = 17 or 27:
+            add 2 to {_sc}
+        set {_r} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_levelName} to mineroomsData("%loop-value%")
+        if {_levelName} is not "backrooms":
+            if {_levelName} is "<none>":
+                set {_levelName} to "??"
+            set {_i} to paper named {_levelName}
+            add {_levelName} to {_args::*}
+            set line 2 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
+            set slot {_sc} of {_gui} to {_i}
+            clear {_args::*}
+            add 1 to {_sc}
+    userData({_player}, "data.inv", "set", "manager.minerooms.noClip.main")
+on inventory click:
+    if userData(player, "data.inv") is "false":
+        stop
+    if userData(player, "data.inv") is "manager.minerooms.noClip.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                close player's inventory
+        else:
+            if "%{_t}%" contain "paper":
+                loop yaml node keys "levels" from "bck.manager.minerooms.data":
+                    add loop-node to {_levelsList::*}
+                loop {_levelsList::*}:
+                    if {_sc} = 17 or 27:
+                        add 2 to {_sc}
+                    set {_r} to loop-value
+                    set {_r::*} to {_r} split by "."
+                    set {_r} to {_r::2}
+                    set {_levelName} to mineroomsData("%loop-value%")
+                    if {_u} is {_levelName}:
+                        close player's inventory
+                        make console execute command "/mvtp %player's name% %{_levelName}%"
+function mineroomsGetLevel(num: integer=-1) :: text:
+    return mineroomsData("levels.%{_num}%")
 #                                      mineroomsGetAllRanks functions                                                                          #
 function mineroomsGetAllRanks() :: objects:
     loop yaml node keys "ranks" from "bck.manager.minerooms.data":

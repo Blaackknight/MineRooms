@@ -15,6 +15,10 @@ minerooms:
         missingRank: "§cRang manquant.."
         unknownRank: "§cRang inconnu (<arg0>)"
         hisDontHaveThisRank: "§c<arg0> n'as pas ce rang."
+        noClip:
+            gui:
+                title: "§e§lNo Clip"
+                clickToTeleport: "§7§oCliquez pour vous téléporter vers <arg0>"
     ranks:
         wanderer:
             name: "§7Explorateur"
