@@ -88,6 +88,8 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                         if mineroomsGetAllRanks() doesn't contain arg-4:
                             add arg-4 to {_args::*}
                             send formatted superLang("minerooms.command.unknownRank", player, {_args::*}) to player
+                        else:
+                            mineroomsSetRank(arg-3, arg-4, true)
             else if arg-2 is "remove":
                 if arg-3 is not set:
                     send formatted lang("minerooms.command.missingPlayer", player) to player
@@ -100,16 +102,23 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                             send formatted superLang("minerooms.command.unknownRank", player, {_args::*}) to player
                         else:
                             if userData(arg-3, "player.rank") is arg-4:
-                                mineroomsSetRank(arg-3, mineroomsData("ranks.default"), true)
+                                mineroomsSetRank(arg-3, "default", true)
                             else:
                                 add arg-3's name to {_args::*}
                                 send formatted superLang("minerooms.command.hisDontHaveThisRank", player, {_args::*}) to player
+            else if arg-2 is "list":
+                set {_gui} to genericGui(lang("minerooms.command.ranks.list.gui.title", player), 5, true)
+                set slot 22 of {_gui} to redstone block named "§4Wait.."
+                userData(player, "data.inv", "set", "manager.minerooms.ranks.list.main")
+                open {_gui} to player
+                mineroomsRankListGuiUpdater(player)
             else:
                 add arg-1 to {_args::*}
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
         else if arg-1 is "noclip":
-            if hasPermission(player, "server.command.minerooms_noclip") is false:
-                send lang("core.noPermission", player) to player
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
                 stop
             mineroomsNoClip(player)
         else:
@@ -119,7 +128,7 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
 function mineroomsLoad():
     set {_data::*} to yaml list "data.minerooms.load.options" from "bck.manager.minerooms.config"
     if file "plugins/MineRooms/config.yml" doesn't exist:
-        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization..", "6.4")
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization..", "6.")
         create script "plugins/MineRooms/config.yml"
         write "##                                                                                                                              " at line 1 to file "plugins/MineRooms/config.yml"
         write "##                   ,,                                                                                 " at line 2 to file "plugins/MineRooms/config.yml"
@@ -145,7 +154,7 @@ function mineroomsLoad():
             add 1 to {_x}
         wait 3 ticks
         superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization §nComplete§r§e !", "6.4")
-    wait 10 ticks
+    wait 3 ticks
     load yaml "plugins/MineRooms/config.yml" as "bck.server.minerooms.config"
     superLog("§6[§4BCK§6/§eMineRooms§6]§r §aLoaded file succeffully !", "6.4")
     wait 2 ticks
@@ -175,26 +184,27 @@ function mineroomsLoad():
         set {_perms::*} to yaml list "%loop-value%.perms" from "bck.server.minerooms.config"
         if "%{_perms::*}%" is not "<none>":
             set {_rank.perms::*} to yaml list "%loop-value%.perms" from "bck.server.minerooms.config"
-            set yaml list "%loop-value%.perms" from "bck.manager.minerooms.data" to {_rank.perms::*}
             mineroomsData("%loop-value%.name", "set", {_rankName})
+            set yaml list "%loop-value%.perms" from "bck.manager.minerooms.data" to {_rank.perms::*}
             save "bck.manager.minerooms.data"
             clear {_rank.perms::*}
-    wait 10 ticks
+    wait 5 ticks
     superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.4")
 
 #                                      tab complete minerooms                                                                          #
 on tab complete of "/minerooms" or "/mr":
     if hasPermission(player, "server.command.minerooms") is false:
         stop
-    add "noclip" to {_data::*}
     if hasPermission(player, "op") is true:
         add "rank" to {_data::*}
+        add "noclip" to {_data::*}
     set tab completions for position 1 to {_data::*}
     if tab arg-1 is "rank":
         if hasPermission(player, "op") is true:
             clear {_data::*}
             add "set" to {_data::*}
             add "remove" to {_data::*}
+            add "list" to {_data::*}
             set tab completions for position 2 to {_data::*} 
             if tab arg-2 is "set":
                 set tab completions for position 3 to all players
@@ -213,10 +223,47 @@ on join:
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
 on first join:
     userData(player, "minerooms.temp.firstJoin", "set", "true")
+    set {_se} to selector(player)
+    superLog("§6[§4BCK§6]§r §7%{_se}% §ris loading..", "4")
+    superLog("§6[§4BCK§6]§r §7%player's name% §ris loading..", "6", true)
 on any move:
     if userData(player, "minerooms.temp.firstJoin") is "true":
-        make console execute command "/mvtp %player's name% %mineroomsGetLevel(0)%"
+        make console execute command "/mvtp %player's name% %mineroomsGetLevel(player, 0)%"
         userData(player, "minerooms.temp.firstJoin", "set", "false")
+        set {_se} to selector(player)
+        superLog("§6[§4BCK§6]§r §7%{_se}% §rfinished his loading..", "4")
+        superLog("§6[§4BCK§6]§r §7%player's name% §rfinished his loading..", "6", true)
+on right click on lectern:
+    if player's world is not "Niveau99":
+        stop
+    if player cannot hold 1 written book:
+        cancel event
+        stop
+    cancel event
+    set {_x} to userData(player, "data.language")
+    if "%{_x}%" is "<none>":
+        set {_x} to languageConfig("data.defaultLanguage")
+        userData(player, "data.language", "set", "en")
+    set {_pages::*} to yaml list "minerooms.levels.99.lore.book.pages" from "bck.manager.language.%{_x}%"
+    set {_name} to lang("minerooms.levels.99.lore.book.name", player)
+    set {_a} to lang("minerooms.levels.99.lore.book.author", player)
+    set {_w} to ""
+    loop {_pages::*}:
+        set {_v} to loop-value
+        if loop-index is "1":
+            set {_w} to "'{""text"":""%{_v}%""}'"
+        else:
+            set {_w} to "%{_w}%,'{""text"":""%{_v}%""}'"
+    set {_cmd} to "/give %player's name% written_book{pages:[%{_w}%],title:""%{_name}%"",author:""%{_a}%""}"
+    make console execute command {_cmd}
+    set {_ss} to 0
+    loop 36 times:
+        set {_i} to slot {_ss} of player's inventory
+        if "%{_i}%" is "written book":
+            open book {_i} to player
+            set slot {_ss} of player's inventory to air
+            exit loop
+        add 1 to {_ss}
 on chat:
     cancel event
     loop all players:
@@ -260,7 +307,8 @@ function mineroomsNoClipGuiUpdater(player: player):
         set {_r::*} to {_r} split by "."
         set {_r} to {_r::2}
         set {_levelName} to mineroomsData("%loop-value%")
-        if {_levelName} is not "backrooms":
+        set {_levelName} to configLang({_levelName}, {_player})
+        if {_levelName} is not lang("minerooms.command.noClip.levels.-1", {_player}):
             if {_levelName} is "<none>":
                 set {_levelName} to "??"
             set {_i} to paper named {_levelName}
@@ -270,6 +318,43 @@ function mineroomsNoClipGuiUpdater(player: player):
             clear {_args::*}
             add 1 to {_sc}
     userData({_player}, "data.inv", "set", "manager.minerooms.noClip.main")
+function mineroomsRankListGuiUpdater(player: player):
+    set {_gui} to {_player}'s current inventory
+    set slot 22 of {_gui} to air
+    set {_sc} to 10
+    set {_gc} to 0
+    loop 24 times:
+        if {_gc} is 10 or 19 or 28:
+            add 7 to {_gc}
+        else if {_gc} is 40:
+            add 1 to {_gc}
+        set slot {_gc} of {_gui} to yellow stained glass pane named "§l"
+        add 1 to {_gc}
+    loop yaml node keys "ranks" from "bck.manager.minerooms.data":
+        add loop-node to {_ranksList::*}
+    loop {_ranksList::*}:
+        set {_r} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_rankName} to mineroomsData("%loop-value%.name")
+        if {_rankName} is not set:
+            set {_rankName} to "minerooms.ranks.%{_r}%.name"
+        set {_perms::*} to yaml list "%loop-value%.perms" from "bck.manager.minerooms.data"
+        if "%{_perms::*}%" is not "<none>":
+            set {_rank.perms::*} to yaml list "%loop-value%.perms" from "bck.manager.minerooms.data"
+        set {_i} to paper named configLang({_rankName}, {_player})
+        set line 1 of lore of {_i} to lang("minerooms.command.ranks.list.gui.permissions", {_player})
+        set {_rf} to 2
+        loop {_rank.perms::*}:
+            set {_x} to loop-value-2
+            add "%{_x}%" to {_args::*}
+            set line {_rf} of lore of {_i} to superLang("minerooms.command.ranks.list.gui.genericPermission", {_player}, {_args::*})
+            add 1 to {_rf}
+            clear {_args::*}
+        set slot {_sc} of {_gui} to {_i}
+        add 1 to {_sc}
+        wait 1 tick
+    userData({_player}, "data.inv", "set", "manager.minerooms.ranks.list.main")
 on inventory click:
     if userData(player, "data.inv") is "false":
         stop
@@ -295,11 +380,24 @@ on inventory click:
                     set {_r::*} to {_r} split by "."
                     set {_r} to {_r::2}
                     set {_levelName} to mineroomsData("%loop-value%")
+                    set {_levelNameBis} to configLang({_levelName}, player, "language", true)
+                    set {_levelName} to configLang({_levelName}, player)
                     if {_u} is {_levelName}:
                         close player's inventory
-                        make console execute command "/mvtp %player's name% %{_levelName}%"
-function mineroomsGetLevel(num: integer=-1) :: text:
-    return mineroomsData("levels.%{_num}%")
+                        make console execute command "/mvtp %player's name% %{_levelNameBis}%"
+    else if userData(player, "data.inv") is "manager.minerooms.ranks.list.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                close player's inventory
+function mineroomsGetLevel(player: player, num: integer=-1) :: text:
+    return configLang(mineroomsData("levels.%{_num}%"), {_player})
 #                                      mineroomsGetAllRanks functions                                                                          #
 function mineroomsGetAllRanks() :: objects:
     loop yaml node keys "ranks" from "bck.manager.minerooms.data":
@@ -314,17 +412,15 @@ function mineroomsGetAllRanks() :: objects:
 function mineroomsSetRank(player: player, rank: text="wanderer", autoPerm: boolean=false):
     userData({_player}, "player.rank", "set", {_rank})
     set {_s} to selector({_player})
-    superLog("§6[§4BCK§6/§eMineRooms§6]§r Rank of §7%{_s}% §rhas been set to §7%{_rank}%", "4")
+    superLog("§6[§4BCK§6/§eMineRooms§6]§r Rank of §7%{_s}% §rhas been set to §7%{_rank}%", "3")
     superLog("§6[§4BCK§6/§eMineRooms§6]§r Rank of §7%{_player}'s name% §rhas been set to §7%{_rank}%", "6", true)
     if {_autoPerm} is true:
-        set {_perms::*} to mineroomsGetRankPerms({_rank})
-        if "%{_perms::*}%" is "<none>":
-            loop {server.permission.%{_player}'s name%.list::*}:
-                if loop-value is not "server.owner":
-                    removePermission({_player}, loop-value, true)
+        loop {server.permission.%{_player}'s name%.list::*}:
+            if loop-value is not "server.owner":
+                removePermission({_player}, loop-value, true)
         loop mineroomsGetRankPerms({_rank}):
             set {_x} to loop-value
-            if {_x} contain "permissions":
+            if "%{_x}%" contain "permissions":
                 set {_data::*} to {_x} split by "."
                 set {_w} to {_data::2}
                 loop mineroomsGetRankPerms({w}):
@@ -335,7 +431,7 @@ function mineroomsSetRank(player: player, rank: text="wanderer", autoPerm: boole
 function mineroomsGetRank(player: player) :: text:
     set {_r} to userData({_player}, "player.rank")
     return "%{_r}%"
-#                                      mineroomsSetRank functions                                                                          #
+#                                      mineroomsGetRankPerms functions                                                                          #
 function mineroomsGetRankPerms(rank: text="?", player: text="?") :: objects:
     if {_rank} is "?":
         if {_player} is not "?":

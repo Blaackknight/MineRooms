@@ -19,13 +19,63 @@ minerooms:
             gui:
                 title: "§e§lNo Clip"
                 clickToTeleport: "§7§oCliquez pour vous téléporter vers <arg0>"
+            levels:
+                -1: "Backrooms"
+                0: "Niveau0"
+                1: "Niveau1"
+                2: "Niveau2"
+                3: "Niveau3"
+                4: "Niveau4"
+                5: "Niveau5"
+                99: "Niveau99"
+        ranks:
+            list:
+                gui:
+                    title: "§e§lListe des rangs"
+                    permissions: "§7Permissions:"
+                    genericPermission: "§e⤍ §d<arg0>"
     ranks:
+        default:
+            name: "§dDéfaut"
         wanderer:
             name: "§7Explorateur"
+        meg_member:
+            name: "§7Membre du M.E.G"
         moderator:
             name: "§2Modérateur"
         administrator:
             name: "§4Administrateur"
+    levels:
+        -1:
+            lore:
+
+        0:
+            lore:
+                
+        1:
+            lore:
+                
+        2:
+            lore:
+                
+        3:
+            lore:
+                
+        4:
+            lore:
+                
+        5:
+            lore:
+                
+        99:
+            lore:
+                book:
+                    name: "??"
+                    author: "??"
+                    pages:
+                        - "Simon, quand tu te réveilleras pense à sortir la poubelle et à faire la vaiselle,  ne rentrerais pas tard ce soir alors ne m\\'attend pas pour manger.\n\n\n\nBisous, Maman"
+                        - "Simon ferme ta geule\n\n\n\n\nBisous ta mère la pute."
+
 core:
     functions:
         commandError:

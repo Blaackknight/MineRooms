@@ -19,13 +19,62 @@ minerooms:
             gui:
                 title: "§e§lNo Clip"
                 clickToTeleport: "§7§oClick to teleport to <arg0>"
+            levels:
+                -1: "Backrooms"
+                0: "Level0"
+                1: "Level1"
+                2: "Level2"
+                3: "Level3"
+                4: "Level4"
+                5: "Level5"
+                99: "Level99"
+        ranks:
+            list:
+                gui:
+                    title: "§e§lRanks List"
+                    permissions: "§7Permissions:"
+                    genericPermission: "§e⤍ §d<arg0>"
     ranks:
+        default:
+            name: "§dDefault"
         wanderer:
             name: "§7Wanderer"
+        meg_member:
+            name: "§7Member of M.E.G"
         moderator:
             name: "§2Moderator"
         administrator:
             name: "§4Administrator"
+    levels:
+        -1:
+            lore:
+
+        0:
+            lore:
+                
+        1:
+            lore:
+                
+        2:
+            lore:
+                
+        3:
+            lore:
+                
+        4:
+            lore:
+                
+        5:
+            lore:
+                
+        99:
+            lore:
+                book:
+                    name: "??"
+                    author: "??"
+                    pages:
+                        - "Simon, when you wake up remember to take out the trash and do the dishes, you won\\'t be home late tonight so don\\'t wait for me to eat.\n\n\n\nKisses, Mom"
+                        - "Simon shut up\n\n\n\n\nKisses your mother the whore."
 core:
     noPermission: "§c§lHey! §7You don't have permission :|"
     cannotDoThis: "§c§lHey! §7You cannot do this :<"
