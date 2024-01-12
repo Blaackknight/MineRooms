@@ -11,7 +11,38 @@ minerooms:
         pleaseSelectYourLanguage: "§6[§eMineRooms§6]§r §7Please select your language §b§o(/language client <arg0>)"
     functions:
         travel:
-            actionBar: "§eDanger: §d<arg0>§r §ePvP:§r <arg1>"
+            actionBar: "§eSurvival Difficulty: §d<arg0>§r §ePvP:§r <arg1>"
+            secure:
+                true: "§aSecure"
+                false: "§cInsecure"
+            stable:
+                true: "§aStable"
+                false: "§cNot Stable"
+            entity:
+                0: "§dDevoid of entity"
+                1: "§eMinimal number of entities"
+                2: "§6Low number of entities"
+                3: "§cAverage number of entities"
+                4: "§4High number of entities"
+                5: "§0Entity infestation"
+            -1: 
+                name: "§dVoid"
+            0: 
+                name: "§eThe Lobby"
+            1: 
+                name: "§7Habitable Zone"
+            2: 
+                name: "§6Pipes Dreams"
+            3: 
+                name: "§eElectric Station"
+            4: 
+                name: "§bAbandoned Office"
+            5: 
+                name: "§4Terror Hotel"
+            99: 
+                name: "??"
+            666: 
+                name: "§0Despair"
     command:
         noOption: "§c/<arg0> <option>"
         noSecondOption: "§c/<arg0> <arg1> <option>"
@@ -24,7 +55,7 @@ minerooms:
             gui:
                 title: "§e§lNo Clip"
                 clickToTeleport: "§7§oClick to teleport to <arg0>"
-                danger: "§eDanger: §d<arg0>"
+                survival_difficulty: "§eSurvival difficulty: §d<arg0>"
                 pvp: "§ePvP: <arg0>"
             levels:
                 -1: "Backrooms"
@@ -35,6 +66,7 @@ minerooms:
                 4: "Level_4"
                 5: "Level_5"
                 99: "Level_99"
+                666: "Level_666"
         ranks:
             list:
                 gui:
@@ -53,6 +85,13 @@ minerooms:
             success: "§6[§eMineRooms§6]§r §7Restocking §aadded §7!"
             added: "§6[§eMineRooms§6]§r §eBlock with a resupply §aadded §b§o(<arg0>)"
             removed: "§6[§eMineRooms§6]§r §eBlock with a resupply §cremoved §b§o(<arg0>)"
+            collected: "§eCrate §aobtained"
+        travel:
+            handIsEmpty: "§6[§eMineRooms§6]§r §cYour hand is empty !"
+            unknownLevel: "§6[§eMineRooms§6]§r §cUnknown level (<arg0>)"
+            success: "§6[§eMineRooms§6]§r §7Travel §aadded §7!"
+            added: "§6[§eMineRooms§6]§r §eBlock with a travel §aadded §b§o(<arg0>)"
+            removed: "§6[§eMineRooms§6]§r §eBlock with a travel §cremoved §b§o(<arg0>)"
     ranks:
         default:
             name: "§dDefault"
@@ -94,6 +133,15 @@ minerooms:
                     pages:
                         - "Simon, when you wake up remember to take out the trash and do the dishes, you won\\'t be home late tonight so don\\'t wait for me to eat.\n\n\n\nKisses, Mom"
                         - "Simon shut up\n\n\n\n\nKisses your mother the whore."
+                test:
+                    name: "??"
+                    author: "??"
+                    pages:
+                        - "§4lParanormal §aentity"
+                        - "Nothing"
+        666:
+            lore:
+            
 core:
     noPermission: "§c§lHey! §7You don't have permission :|"
     cannotDoThis: "§c§lHey! §7You cannot do this :<"

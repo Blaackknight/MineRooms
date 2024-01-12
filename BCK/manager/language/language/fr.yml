@@ -12,6 +12,37 @@ minerooms:
     functions:
         travel:
             actionBar: "§eDanger: §d<arg0>§r §ePvP:§r <arg1>"
+            secure:
+                true: "§aSécurisé"
+                false: "§cNon Sécurisé"
+            stable:
+                true: "§aStable"
+                false: "§cNon Stable"
+            entity:
+                0: "§dDépourvu d'entité"
+                1: "§eNombre minimal d'entités"
+                2: "§6Faible nombre d'entités"
+                3: "§cNombre d'entités moyen"
+                4: "§4Nombre élevé d'entités"
+                5: "§0Infestation d'entités"
+            -1: 
+                name: "§dVide"
+            0: 
+                name: "§eLe Lobby"
+            1: 
+                name: "§7Zone Habitable"
+            2: 
+                name: "§6Rêves de Tuyaux"
+            3: 
+                name: "§eStation Eléctrique"
+            4: 
+                name: "§bBureau Abandonné"
+            5: 
+                name: "§4Hôtel de la terreur"
+            99: 
+                name: "??"
+            666: 
+                name: "§0Désespoir"
     command:
         noOption: "§c/<arg0> <option>"
         noSecondOption: "§c/<arg0> <arg1> <option>"
@@ -24,7 +55,7 @@ minerooms:
             gui:
                 title: "§e§lNo Clip"
                 clickToTeleport: "§7§oCliquez pour vous téléporter vers <arg0>"
-                danger: "§eDanger: §d<arg0>"
+                survival_difficulty: "§eDifficulté de survie: §d<arg0>"
                 pvp: "§ePvP: <arg0>"
             levels:
                 -1: "Backrooms"
@@ -35,6 +66,7 @@ minerooms:
                 4: "Niveau_4"
                 5: "Niveau_5"
                 99: "Niveau_99"
+                666: "Niveau_666"
         ranks:
             list:
                 gui:
@@ -53,6 +85,13 @@ minerooms:
             success: "§6[§eMineRooms§6]§r §7Réapprovisionnement §aajouté §7!"
             added: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §aajouté §b§o(<arg0>)"
             removed: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §cenlevé §b§o(<arg0>)"
+            collected: "§eCaisse §aobtenue"
+        travel:
+            handIsEmpty: "§6[§eMineRooms§6]§r §cVotre main et vide !"
+            unknownLevel: "§6[§eMineRooms§6]§r §cNiveau inconnu (<arg0>)"
+            success: "§6[§eMineRooms§6]§r §7Voyage §aajouté §7!"
+            added: "§6[§eMineRooms§6]§r §eBloc avec un Voyage §aajouté §b§o(<arg0>)"
+            removed: "§6[§eMineRooms§6]§r §eBloc avec un Voyage §cenlevé §b§o(<arg0>)"
 
     ranks:
         default:
@@ -95,6 +134,15 @@ minerooms:
                     pages:
                         - "Simon, quand tu te réveilleras pense à sortir la poubelle et à faire la vaiselle,  ne rentrerais pas tard ce soir alors ne m\\'attend pas pour manger.\n\n\n\nBisous, Maman"
                         - "Simon ferme ta geule\n\n\n\n\nBisous ta mère la pute."
+                test:
+                    name: "??"
+                    author: "??"
+                    pages:
+                        - "§aEntité §4§lparanormal"
+                        - "Rien"
+        666:
+            lore:
+
 
 core:
     noPermission: "§c§lHey! §7Vous n'avez pas la permission :|"
