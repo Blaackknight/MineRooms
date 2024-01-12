@@ -23,13 +23,13 @@ minerooms:
                 clickToTeleport: "§7§oCliquez pour vous téléporter vers <arg0>"
             levels:
                 -1: "Backrooms"
-                0: "Niveau0"
-                1: "Niveau1"
-                2: "Niveau2"
-                3: "Niveau3"
-                4: "Niveau4"
-                5: "Niveau5"
-                99: "Niveau99"
+                0: "Niveau_0"
+                1: "Niveau_1"
+                2: "Niveau_2"
+                3: "Niveau_3"
+                4: "Niveau_4"
+                5: "Niveau_5"
+                99: "Niveau_99"
         ranks:
             list:
                 gui:

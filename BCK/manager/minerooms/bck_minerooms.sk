@@ -196,6 +196,39 @@ function mineroomsLoad():
         if {_levelName} is "<none>":
             set {_levelName} to "??"
         mineroomsData("%loop-value%", "set", {_levelName})
+    
+    loop yaml node keys "restock" from "bck.server.minerooms.config":
+        add loop-node to {_restockList::*}
+    loop {_restockList::*}:
+        set {_r} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        loop yaml node keys "restock.%{_r}%" from "bck.server.minerooms.config":
+            add loop-node to {_dataList::*}
+        loop {_dataList::*}:
+            set {_i} to loop-value-2
+            set {_ii} to loop-value-2
+            set {_i::*} to {_i} split by "."
+            set {_i} to {_i::3}
+            replace all "_" with " " in {_i}
+            
+            set {_restockCount} to yaml value "%{_ii}%.count" from "bck.server.minerooms.config" 
+            set {_restockChance} to yaml value "%{_ii}%.chance" from "bck.server.minerooms.config"
+            set {_restockCount} to "%{_restockCount}%" parsed as integer
+            set {_restockChance} to "%{_restockChance}%" parsed as integer
+            set {_restockCustomName} to mineroomsServerConfig("%{_ii}%.custom.name")
+            set {_restockCustomLores::*} to yaml list "%{_ii}%.custom.lores" from "bck.server.minerooms.config"
+            if "%{_restockCount}%" is "<none>":
+                set {_restockCount} to 1
+            if "%{_restockChance}%" is "<none>":
+                set {_restockChance} to 100
+            mineroomsData("%{_ii}%.count", "set", "%{_restockCount}%")
+            mineroomsData("%{_ii}%.chance", "set", "%{_restockChance}%")
+            if {_restockCustomName} is set:
+                mineroomsData("%{_ii}%.custom.name", "set", {_restockCustomName})
+            if {_restockCustomLores::*} is set:
+                set yaml list "%{_ii}%.custom.lores" from "bck.manager.minerooms.data" to {_restockCustomLores::*}
+                save "bck.manager.minerooms.data"
 
     loop yaml node keys "ranks" from "bck.server.minerooms.config":
         add loop-node to {_ranksList::*}
@@ -412,6 +445,11 @@ on right click:
                         add 1 to {_ss}
     else if {_e} is set:
 
+function mineroomsTravel(player: player, level: integer=-1, message: boolean=true):
+    set {_x} to mineroomsGetLevel({_player}, {_level})
+    make console execute command "/mvtp %{_player}'s name% %mineroomsGetLevel({_player}, {_level})%"
+    wait 1 tick
+    send title mineroomsGetLevel({_player}, {_level}) to {_player}
 on chat:
     cancel event
     loop all players:
@@ -459,6 +497,7 @@ function mineroomsNoClipGuiUpdater(player: player):
         if {_levelName} is not lang("minerooms.command.noClip.levels.-1", {_player}):
             if {_levelName} is "<none>":
                 set {_levelName} to "??"
+            replace all "_" with " " in {_levelName}
             set {_i} to paper named {_levelName}
             add {_levelName} to {_args::*}
             set line 2 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
@@ -530,6 +569,7 @@ on inventory click:
                     set {_levelName} to mineroomsData("%loop-value%")
                     set {_levelNameBis} to configLang({_levelName}, player, "language", true)
                     set {_levelName} to configLang({_levelName}, player)
+                    replace all "_" with " " in {_levelName}
                     if {_u} is {_levelName}:
                         close player's inventory
                         make console execute command "/mvtp %player's name% %{_levelNameBis}%"
@@ -571,9 +611,10 @@ function mineroomsSetRank(player: player, rank: text="wanderer", autoPerm: boole
             if "%{_x}%" contain "permissions":
                 set {_data::*} to "%{_x}%" split by "."
                 set {_w} to {_data::2}
-                loop mineroomsGetRankPerms({w}):
+                loop mineroomsGetRankPerms({_w}):
                     set {_xx} to loop-value-2
-                    addPermission({_player}, {_xx}, true)
+                    if {_xx} doesn't contain "permission":
+                        addPermission({_player}, {_xx}, true)
             else:
                 addPermission({_player}, {_x}, true)
 #                                      mineroomsGetRank functions                                                                          #
