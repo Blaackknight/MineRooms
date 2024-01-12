@@ -351,6 +351,15 @@ function coreRulesGuiUpdater(player: player):
         set {_statusPvp} to {_e}
         enchant {_pvp} with thorns 1
 
+    set line 2 of lore of {_tnt} to "%{_s}% %{_statusTnt}%"
+    set line 4 of lore of {_tnt} to lang("core.command.bck.rules.updater.lore.tnt", {_player})
+
+    set line 2 of lore of {_commandBlock} to "%{_s}% %{_statusCommandBlock}%"
+    set line 4 of lore of {_commandBlock} to lang("core.command.bck.rules.updater.lore.commandBlock", {_player})
+
+    set line 2 of lore of {_pvp} to "%{_s}% %{_statusPvp}%"
+    set line 4 of lore of {_pvp} to lang("core.command.bck.rules.updater.lore.pvp", {_player})
+
     set slot 22 of {_gui} to air
     set slot 11 of {_gui} to {_tnt}
     set slot 12 of {_gui} to {_commandBlock}

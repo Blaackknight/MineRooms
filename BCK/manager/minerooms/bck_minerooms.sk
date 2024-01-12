@@ -113,7 +113,7 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 open {_gui} to player
                 mineroomsRankListGuiUpdater(player)
             else:
-                add arg-1 to {_args::*}
+                add arg-2 to {_args::*}
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
         else if arg-1 is "noclip":
             if hasPermission(player, "op") is false:
@@ -121,6 +121,31 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
                 stop
             mineroomsNoClip(player)
+        else if arg-1 is "lore":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            if arg-2 is not set:
+                send formatted lang("minerooms.command.lore.translationKeyMissing", player) to player
+                stop
+            set {_i} to player's tool
+            if {_i} is air:
+                send formatted lang("minerooms.command.lore.handIsEmpty", player) to player
+                stop
+            set line 2 of lore of player's tool to "§d<lang:minerooms.levels.%arg-2%>"
+            send formatted lang("minerooms.command.lore.success", player) to player
+        else if arg-1 is "restock":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            set {_i} to player's tool
+            if {_i} is air:
+                send formatted lang("minerooms.command.restock.handIsEmpty", player) to player
+                stop
+            set line 2 of lore of player's tool to "§b<restock:default>"
+            send formatted lang("minerooms.command.restock.success", player) to player
         else:
             add arg-1 to {_args::*}
             send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
@@ -198,6 +223,8 @@ on tab complete of "/minerooms" or "/mr":
     if hasPermission(player, "op") is true:
         add "rank" to {_data::*}
         add "noclip" to {_data::*}
+        add "lore" to {_data::*}
+        add "restock" to {_data::*}
     set tab completions for position 1 to {_data::*}
     if tab arg-1 is "rank":
         if hasPermission(player, "op") is true:
@@ -214,6 +241,12 @@ on tab complete of "/minerooms" or "/mr":
                 set tab completions for position 3 to all players
                 if tab arg-3 is set:
                     set tab completions for position 4 to userData(player, "player.rank")
+    else if tab arg-1 is "lore":
+        if hasPermission(player, "op") is true:
+
+    else if tab arg-1 is "restock":
+        if hasPermission(player, "op") is true:
+
 on join:
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
@@ -221,49 +254,164 @@ on join:
         mineroomsSetRank(player, "wanderer", true)
     if userData(player, "data.language") is "<none>":
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
-on first join:
-    userData(player, "minerooms.temp.firstJoin", "set", "true")
-    set {_se} to selector(player)
-    superLog("§6[§4BCK§6]§r §7%{_se}% §ris loading..", "4")
-    superLog("§6[§4BCK§6]§r §7%player's name% §ris loading..", "6", true)
-on any move:
-    if userData(player, "minerooms.temp.firstJoin") is "true":
-        make console execute command "/mvtp %player's name% %mineroomsGetLevel(player, 0)%"
-        userData(player, "minerooms.temp.firstJoin", "set", "false")
+command /bck_dev:
+    trigger:
         set {_se} to selector(player)
-        superLog("§6[§4BCK§6]§r §7%{_se}% §rfinished his loading..", "4")
-        superLog("§6[§4BCK§6]§r §7%player's name% §rfinished his loading..", "6", true)
-on right click on lectern:
-    if player's world is not "Niveau99":
-        stop
-    if player cannot hold 1 written book:
-        cancel event
-        stop
-    cancel event
-    set {_x} to userData(player, "data.language")
-    if "%{_x}%" is "<none>":
-        set {_x} to languageConfig("data.defaultLanguage")
-        userData(player, "data.language", "set", "en")
-    set {_pages::*} to yaml list "minerooms.levels.99.lore.book.pages" from "bck.manager.language.%{_x}%"
-    set {_name} to lang("minerooms.levels.99.lore.book.name", player)
-    set {_a} to lang("minerooms.levels.99.lore.book.author", player)
-    set {_w} to ""
-    loop {_pages::*}:
-        set {_v} to loop-value
-        if loop-index is "1":
-            set {_w} to "'{""text"":""%{_v}%""}'"
-        else:
-            set {_w} to "%{_w}%,'{""text"":""%{_v}%""}'"
-    set {_cmd} to "/give %player's name% written_book{pages:[%{_w}%],title:""%{_name}%"",author:""%{_a}%""}"
-    make console execute command {_cmd}
-    set {_ss} to 0
-    loop 36 times:
-        set {_i} to slot {_ss} of player's inventory
-        if "%{_i}%" is "written book":
-            open book {_i} to player
-            set slot {_ss} of player's inventory to air
-            exit loop
-        add 1 to {_ss}
+        loop getLanguages():
+            set {_x} to loop-value
+            load yaml "plugins/Skript/scripts/BCK/manager/language/language/%{_x}%.yml" as "bck.manager.language.%{_x}%"
+            set {_key} to "minerooms.firstJoin.pleaseSelectYourLanguage"
+            set {_r} to yaml value {_key} from "bck.manager.language.%{_x}%"
+            if "%{_r}%" is "<none>":
+                set {_r} to {_key}
+            add {_x} to {_args::*}
+            set {_num} to 0
+            loop {_args::*}:
+                set {_v} to loop-value-2
+                replace all "<arg%{_num}%>" with {_v} in {_r}
+                add 1 to {_num}
+            send formatted {_r} to player
+            clear {_args::*}
+on first join:
+    #userData(player, "minerooms.temp.firstJoin", "set", "true")
+    set {_se} to selector(player)
+    loop getLanguages():
+        set {_x} to loop-value
+        load yaml "plugins/Skript/scripts/BCK/manager/language/language/%{_x}%.yml" as "bck.manager.language.%{_x}%"
+        set {_key} to "minerooms.firstJoin.pleaseSelectYourLanguage"
+        set {_r} to yaml value {_key} from "bck.manager.language.%{_x}%"
+        if "%{_r}%" is "<none>":
+            set {_r} to {_key}
+        add {_x} to {_args::*}
+        set {_num} to 0
+        loop {_args::*}:
+            set {_v} to loop-value-2
+            replace all "<arg%{_num}%>" with {_v} in {_r}
+            add 1 to {_num}
+        send formatted {_r} to player
+        clear {_args::*}
+    wait 5 seconds
+    wait 1 seconds
+    make console execute command "/mvtp %player's name% %mineroomsGetLevel(player, 0)%"
+    # superLog("§6[§4BCK§6]§r §7%{_se}% §ris loading..", "4")
+    # superLog("§6[§4BCK§6]§r §7%player's name% §ris loading..", "6", true)
+# on any move:
+#     if userData(player, "minerooms.temp.firstJoin") is "true":
+#         make console execute command "/mvtp %player's name% %mineroomsGetLevel(player, 0)%"
+#         userData(player, "minerooms.temp.firstJoin", "set", "false")
+#         set {_se} to selector(player)
+#         superLog("§6[§4BCK§6]§r §7%{_se}% §rfinished his loading..", "4")
+#         superLog("§6[§4BCK§6]§r §7%player's name% §rfinished his loading..", "6", true)
+on place:
+    set {_b} to event-block
+    set {_i} to event-item
+    set {_cx} to x-coordinate of {_b}
+    set {_cy} to y-coordinate of {_b}
+    set {_cz} to z-coordinate of {_b}
+    set {_cw} to {_b}'s world
+    set {_x} to line 2 of lore of {_i}
+    replace "§d" with "" in {_x}
+    replace "§b" with "" in {_x}
+    if {_x} contain "<lang:":
+        set {_data::*} to {_x} split by ":"
+        set {_k} to {_data::2}
+        replace ">" with "" in {_k}
+        set {_blocks::*} to yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.data"
+        add "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%|%{_k}%" to {_blocks::*}
+        set yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.data" to {_blocks::*}
+        save yaml "bck.manager.minerooms.data"
+        add {_k} to {_args::*}
+        send actionbar formatted superLang("minerooms.command.lore.added", player, {_args::*}) to player
+        play sound "entity.experience_orb.pickup" with volume 0.3 for player
+    else if {_x} contain "<restock:":
+        set {_data::*} to {_x} split by ":"
+        set {_k} to {_data::2}
+        replace ">" with "" in {_k}
+        set {_supplys::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.data"
+        add "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%|%{_k}%" to {_supplys::*}
+        set yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.data" to {_supplys::*}
+        save yaml "bck.manager.minerooms.data"
+        add {_k} to {_args::*}
+        send actionbar formatted superLang("minerooms.command.restock.added", player, {_args::*}) to player
+        play sound "entity.experience_orb.pickup" with volume 0.3 for player
+on break:
+    set {_b} to event-block
+    set {_i} to event-item
+    set {_cx} to x-coordinate of {_b}
+    set {_cy} to y-coordinate of {_b}
+    set {_cz} to z-coordinate of {_b}
+    set {_cw} to {_b}'s world
+    set {_blocks::*} to yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.data"
+    set {_supplys::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.data"
+    if {_blocks::*} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+        loop {_blocks::*}:
+            set {_x} to loop-value
+            set {_xs::*} to {_x} split by "|"
+            if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                add {_xs::5} to {_args::*}
+                send actionbar formatted superLang("minerooms.command.lore.removed", player, {_args::*}) to player
+                play sound "block.note_block.bit" with volume 0.3 with pitch 0 for player
+            else:
+                add {_x} to {_r::*}
+        set yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.data" to {_r::*}
+        save yaml "bck.manager.minerooms.data"
+    else if {_supplys::*} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+        loop {_supplys::*}:
+            set {_x} to loop-value
+            set {_xs::*} to {_x} split by "|"
+            if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                add {_xs::5} to {_args::*}
+                send actionbar formatted superLang("minerooms.command.restock.removed", player, {_args::*}) to player
+                play sound "block.note_block.bit" with volume 0.3 with pitch 0 for player
+            else:
+                add {_x} to {_r::*}
+        set yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.data" to {_r::*}
+        save yaml "bck.manager.minerooms.data"
+on right click:
+    set {_e} to event-entity
+    set {_b} to event-block
+    if {_b} is set:
+        set {_cx} to x-coordinate of {_b}
+        set {_cy} to y-coordinate of {_b}
+        set {_cz} to z-coordinate of {_b}
+        set {_cw} to {_b}'s world
+        set {_blocks::*} to yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.data"
+        set {_supplys::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.data"
+        if {_blocks::*} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+            loop {_blocks::*}:
+                set {_x} to loop-value
+                set {_xs::*} to {_x} split by "|"
+                if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                    if player cannot hold 1 written book:
+                        cancel event
+                        stop
+                    cancel event
+                    set {_x} to userData(player, "data.language")
+                    if "%{_x}%" is "<none>":
+                        set {_x} to languageConfig("data.defaultLanguage")
+                        userData(player, "data.language", "set", "en")
+                    set {_pages::*} to yaml list "%{_xs::5}%.pages" from "bck.manager.language.%{_x}%"
+                    set {_name} to lang("%{_xs::5}%.name", player)
+                    set {_a} to lang("%{_xs::5}%.author", player)
+                    set {_w} to ""
+                    loop {_pages::*}:
+                        set {_v} to loop-value-2
+                        if loop-index-2 is "1":
+                            set {_w} to "'{""text"":""%{_v}%""}'"
+                        else:
+                            set {_w} to "%{_w}%,'{""text"":""%{_v}%""}'"
+                    set {_cmd} to "/give %player's name% written_book{pages:[%{_w}%],title:""%{_name}%"",author:""%{_a}%""}"
+                    make console execute command {_cmd}
+                    set {_ss} to 0
+                    loop 36 times:
+                        set {_i} to slot {_ss} of player's inventory
+                        if "%{_i}%" is "written book":
+                            open book {_i} to player
+                            set slot {_ss} of player's inventory to air
+                            exit loop
+                        add 1 to {_ss}
+    else if {_e} is set:
+
 on chat:
     cancel event
     loop all players:
@@ -421,12 +569,13 @@ function mineroomsSetRank(player: player, rank: text="wanderer", autoPerm: boole
         loop mineroomsGetRankPerms({_rank}):
             set {_x} to loop-value
             if "%{_x}%" contain "permissions":
-                set {_data::*} to {_x} split by "."
+                set {_data::*} to "%{_x}%" split by "."
                 set {_w} to {_data::2}
                 loop mineroomsGetRankPerms({w}):
                     set {_xx} to loop-value-2
                     addPermission({_player}, {_xx}, true)
-            addPermission({_player}, {_x}, true)
+            else:
+                addPermission({_player}, {_x}, true)
 #                                      mineroomsGetRank functions                                                                          #
 function mineroomsGetRank(player: player) :: text:
     set {_r} to userData({_player}, "player.rank")

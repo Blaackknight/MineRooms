@@ -7,6 +7,8 @@ language:
 manager:
 other:
 minerooms:
+    firstJoin:
+        pleaseSelectYourLanguage: "§6[§eMineRooms§6]§r §7Veuillez sélectionner votre langue §b§o(/language client <arg0>)"
     command:
         noOption: "§c/<arg0> <option>"
         noSecondOption: "§c/<arg0> <arg1> <option>"
@@ -34,6 +36,18 @@ minerooms:
                     title: "§e§lListe des rangs"
                     permissions: "§7Permissions:"
                     genericPermission: "§e⤍ §d<arg0>"
+        lore:
+            handIsEmpty: "§6[§eMineRooms§6]§r §cVotre main et vide !"
+            translationKeyMissing: "§6[§eMineRooms§6]§r §cClef de traduction manquant.."
+            success: "§6[§eMineRooms§6]§r §7Clef de traduction §aajouté §7!"
+            added: "§6[§eMineRooms§6]§r §eBloc avec un lore §aajouté §d§o(<arg0>)"
+            removed: "§6[§eMineRooms§6]§r §eBloc avec un lore §cenlevé §d§o(<arg0>)"
+        restock:
+            handIsEmpty: "§6[§eMineRooms§6]§r §cVotre main et vide !"
+            success: "§6[§eMineRooms§6]§r §7Réapprovisionnement §aajouté §7!"
+            added: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §aajouté §b§o(<arg0>)"
+            removed: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §cenlevé §b§o(<arg0>)"
+
     ranks:
         default:
             name: "§dDéfaut"
@@ -69,7 +83,7 @@ minerooms:
                 
         99:
             lore:
-                book:
+                book_1:
                     name: "??"
                     author: "??"
                     pages:
@@ -77,6 +91,9 @@ minerooms:
                         - "Simon ferme ta geule\n\n\n\n\nBisous ta mère la pute."
 
 core:
+    noPermission: "§c§lHey! §7Vous n'avez pas la permission :|"
+    cannotDoThis: "§c§lHey! §7Tu ne peux pas faire ça :<"
+    genericNoPermission: "§c§lHey! §7Vous n'avez pas la permission :/"
     functions:
         commandError:
             1: "§cCommande inconnue ou incomplète, voir ci-dessous pour l'erreur"

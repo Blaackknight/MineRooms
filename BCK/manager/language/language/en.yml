@@ -7,6 +7,8 @@ language:
 manager:
 other:
 minerooms:
+    firstJoin:
+        pleaseSelectYourLanguage: "§6[§eMineRooms§6]§r §7Please select your language §b§o(/language client <arg0>)"
     command:
         noOption: "§c/<arg0> <option>"
         noSecondOption: "§c/<arg0> <arg1> <option>"
@@ -34,6 +36,17 @@ minerooms:
                     title: "§e§lRanks List"
                     permissions: "§7Permissions:"
                     genericPermission: "§e⤍ §d<arg0>"
+        lore:
+            handIsEmpty: "§6[§eMineRooms§6]§r §cYour hand is empty!"
+            translationKeyMissing: "§6[§eMineRooms§6]§r §cTranslation key missing.."
+            success: "§6[§eMineRooms§6]§r §7Translation key §aadded §7!"
+            added: "§6[§eMineRooms§6]§r §eBlock with lore §aadded §d§o(<arg0>)"
+            removed: "§6[§eMineRooms§6]§r §eBlock with lore §cremoved §d§o(<arg0>)"
+        restock:
+            handIsEmpty: "§6[§eMineRooms§6]§r §cYour hand is empty!"
+            success: "§6[§eMineRooms§6]§r §7Restocking §aadded §7!"
+            added: "§6[§eMineRooms§6]§r §eBlock with a resupply §aadded §b§o(<arg0>)"
+            removed: "§6[§eMineRooms§6]§r §eBlock with a resupply §cremoved §b§o(<arg0>)"
     ranks:
         default:
             name: "§dDefault"
@@ -69,7 +82,7 @@ minerooms:
                 
         99:
             lore:
-                book:
+                book_1:
                     name: "??"
                     author: "??"
                     pages:

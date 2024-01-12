@@ -32,6 +32,7 @@ data:
             - "            - server.command.tm"
             - "            - server.command.me"
             - "            - server.command.minerooms"
+            - "            - server.command.language"
             - "    meg_member:"
             - "        name: \"<lang:minerooms.ranks.meg_member.name>\""
             - "        perms:"
