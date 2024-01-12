@@ -9,6 +9,9 @@ other:
 minerooms:
     firstJoin:
         pleaseSelectYourLanguage: "§6[§eMineRooms§6]§r §7Veuillez sélectionner votre langue §b§o(/language client <arg0>)"
+    functions:
+        travel:
+            actionBar: "§eDanger: §d<arg0>§r §ePvP:§r <arg1>"
     command:
         noOption: "§c/<arg0> <option>"
         noSecondOption: "§c/<arg0> <arg1> <option>"
@@ -21,6 +24,8 @@ minerooms:
             gui:
                 title: "§e§lNo Clip"
                 clickToTeleport: "§7§oCliquez pour vous téléporter vers <arg0>"
+                danger: "§eDanger: §d<arg0>"
+                pvp: "§ePvP: <arg0>"
             levels:
                 -1: "Backrooms"
                 0: "Niveau_0"
@@ -44,6 +49,7 @@ minerooms:
             removed: "§6[§eMineRooms§6]§r §eBloc avec un lore §cenlevé §d§o(<arg0>)"
         restock:
             handIsEmpty: "§6[§eMineRooms§6]§r §cVotre main et vide !"
+            unknownRestock: "§6[§eMineRooms§6]§r §cRéapprovisionnement inconnu (<arg0>)"
             success: "§6[§eMineRooms§6]§r §7Réapprovisionnement §aajouté §7!"
             added: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §aajouté §b§o(<arg0>)"
             removed: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §cenlevé §b§o(<arg0>)"

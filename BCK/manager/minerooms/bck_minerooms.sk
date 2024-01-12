@@ -144,7 +144,14 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
             if {_i} is air:
                 send formatted lang("minerooms.command.restock.handIsEmpty", player) to player
                 stop
-            set line 2 of lore of player's tool to "§b<restock:default>"
+            if arg-2 is not set:
+                set {_res} to "default"
+            else:
+                if mineroomsGetRestocks() doesn't contain arg-2:
+                    add arg-2 to {_args::*}
+                    send formatted superLang("minerooms.command.restock.unknownRestock", player, {_args::*}) to players
+                    stop
+            set line 2 of lore of player's tool to "§b<restock:%{_res}%>"
             send formatted lang("minerooms.command.restock.success", player) to player
         else:
             add arg-1 to {_args::*}
@@ -192,10 +199,18 @@ function mineroomsLoad():
         set {_r} to loop-value
         set {_r::*} to {_r} split by "."
         set {_r} to {_r::2}
-        set {_levelName} to mineroomsServerConfig("%loop-value%")
-        if {_levelName} is "<none>":
+        set {_levelName} to mineroomsServerConfig("%loop-value%.name")
+        set {_levelDanger} to yaml value "%loop-value%.danger" from "bck.server.minerooms.config"
+        set {_levelPvp} to yaml value "%loop-value%.pvp" from "bck.server.minerooms.config"
+        if "%{_levelName}%" is "<none>":
             set {_levelName} to "??"
-        mineroomsData("%loop-value%", "set", {_levelName})
+        if "%{_levelDanger}%" is "<none>":
+            set {_levelDanger} to "0"
+        if "%{_levelPvp}%" is "<none>":
+            set {_levelPvp} to "false"
+        mineroomsData("%loop-value%.name", "set", "%{_levelName}%")
+        mineroomsData("%loop-value%.danger", "set", "%{_levelDanger}%")
+        mineroomsData("%loop-value%.pvp", "set", "%{_levelPvp}%")
     
     loop yaml node keys "restock" from "bck.server.minerooms.config":
         add loop-node to {_restockList::*}
@@ -212,17 +227,22 @@ function mineroomsLoad():
             set {_i} to {_i::3}
             replace all "_" with " " in {_i}
             
-            set {_restockCount} to yaml value "%{_ii}%.count" from "bck.server.minerooms.config" 
+            set {_restockMin} to yaml value "%{_ii}%.min" from "bck.server.minerooms.config" 
+            set {_restockMax} to yaml value "%{_ii}%.max" from "bck.server.minerooms.config" 
             set {_restockChance} to yaml value "%{_ii}%.chance" from "bck.server.minerooms.config"
-            set {_restockCount} to "%{_restockCount}%" parsed as integer
+            set {_restockMin} to "%{_restockMin}%" parsed as integer
+            set {_restockMax} to "%{_restockMax}%" parsed as integer
             set {_restockChance} to "%{_restockChance}%" parsed as integer
             set {_restockCustomName} to mineroomsServerConfig("%{_ii}%.custom.name")
             set {_restockCustomLores::*} to yaml list "%{_ii}%.custom.lores" from "bck.server.minerooms.config"
-            if "%{_restockCount}%" is "<none>":
-                set {_restockCount} to 1
+            if "%{_restockMin}%" is "<none>":
+                set {_restockMin} to 0
+            if "%{_restockMax}%" is "<none>":
+                set {_restockMin} to 1
             if "%{_restockChance}%" is "<none>":
                 set {_restockChance} to 100
-            mineroomsData("%{_ii}%.count", "set", "%{_restockCount}%")
+            mineroomsData("%{_ii}%.min", "set", "%{_restockMin}%")
+            mineroomsData("%{_ii}%.max", "set", "%{_restockMax}%")
             mineroomsData("%{_ii}%.chance", "set", "%{_restockChance}%")
             if {_restockCustomName} is set:
                 mineroomsData("%{_ii}%.custom.name", "set", {_restockCustomName})
@@ -279,7 +299,12 @@ on tab complete of "/minerooms" or "/mr":
 
     else if tab arg-1 is "restock":
         if hasPermission(player, "op") is true:
-
+            loop yaml node keys "restock" from "bck.manager.minerooms.data":
+                add loop-node to {_dataList::*}
+            loop {_dataList::*}:
+                set {_x::*} to loop-value split by "."
+                add {_x::2} to {_args::*}
+            set tab completions for position 2 to {_args::*}
 on join:
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
@@ -287,8 +312,17 @@ on join:
         mineroomsSetRank(player, "wanderer", true)
     if userData(player, "data.language") is "<none>":
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
+function mineroomsGetRestocks() :: objects:
+    loop yaml node keys "restock" from "bck.manager.minerooms.data":
+        add loop-node to {_dataList::*}
+    loop {_dataList::*}:
+        set {_x::*} to loop-value split by "."
+        add {_x::2} to {_args::*}
+    return {_args::*}
 command /bck_dev:
     trigger:
+        mineroomsTravel(player, 1)
+        stop
         set {_se} to selector(player)
         loop getLanguages():
             set {_x} to loop-value
@@ -443,13 +477,70 @@ on right click:
                             set slot {_ss} of player's inventory to air
                             exit loop
                         add 1 to {_ss}
+        else if {_supplys::*} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+            loop {_supplys::*}:
+                set {_x} to loop-value
+                set {_xs::*} to {_x} split by "|"
+                if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                    loop yaml node keys "restock.%{_xs::5}%" from "bck.manager.minerooms.data":
+                        add loop-node to {_dataList::*}
+                    loop {_dataList::*}:
+                        set {_i} to loop-value-2
+                        set {_ii} to loop-value-2
+                        set {_i::*} to {_i} split by "."
+                        set {_i} to {_i::3}
+                        replace all "_" with " " in {_i}
+                        set {_i} to {_i} parsed as item
+                        
+                        set {_restockMin} to yaml value "%{_ii}%.min" from "bck.manager.minerooms.data" 
+                        set {_restockMax} to yaml value "%{_ii}%.max" from "bck.manager.minerooms.data" 
+                        set {_restockChance} to yaml value "%{_ii}%.chance" from "bck.manager.minerooms.data"
+                        set {_restockMin} to "%{_restockMin}%" parsed as integer
+                        set {_restockMax} to "%{_restockMax}%" parsed as integer
+                        set {_restockChance} to "%{_restockChance}%" parsed as integer
+                        set {_restockCustomName} to mineroomsServerConfig("%{_ii}%.custom.name")
+                        set {_restockCustomLores::*} to yaml list "%{_ii}%.custom.lores" from "bck.manager.minerooms.data"
+                        set {_item} to {_i}
+                        if {_restockCustomName} is set:
+                            set {_item} to {_i} named {_restockCustomName}
+                        if {_restockCustomLores::*} is set:
+                            set {_b} to 1
+                            loop {_restockCustomLores::*}:
+                                set {_v} to loop-value-3
+                                if {_v} contain "<lang:":
+                                    set {_vv::*} to {_v} split by ":"
+                                    set {_k} to {_vv::2}
+                                    replace ">" with "" in {_k}
+                                    set {_v} to lang({_k}, player) 
+                                set line {_b} of lore of {_item} to {_v}
+                                add 1 to {_b}
+                        set {_restockCount} to rng({_restockMin}, {_restockMax})
+                        if player cannot hold {_restockCount} of {_item}:
+                            cancel event
+                            stop
+                        cancel event
+                        chance of {_restockChance}%:
+                            give {_restockCount} of {_item} to player
+                        
+                    
     else if {_e} is set:
 
 function mineroomsTravel(player: player, level: integer=-1, message: boolean=true):
     set {_x} to mineroomsGetLevel({_player}, {_level})
-    make console execute command "/mvtp %{_player}'s name% %mineroomsGetLevel({_player}, {_level})%"
+    set {_levelName} to mineroomsData("levels.%{_level}%.name")
+    set {_levelDanger} to mineroomsData("levels.%{_level}%.danger")
+    set {_levelPvp} to mineroomsData("levels.%{_level}%.pvp")
+    set {_levelNameBis} to configLang({_levelName}, {_player}, "language", true)
+    make console execute command "/mvtp %{_player}'s name% %{_levelNameBis}%"
     wait 1 tick
-    send title mineroomsGetLevel({_player}, {_level}) to {_player}
+    if {_message} is true:
+        send title mineroomsGetLevel({_player}, {_level}) to {_player}
+        set {_pvp} to "§2☻"
+        if {_levelPvp} is "true":
+            set {_pvp} to "§4☠"
+        add "%{_levelDanger}%" to {_args::*}
+        add {_pvp} to {_args::*}
+        send actionbar superLang("minerooms.functions.travel.actionBar", {_player}, {_args::*}) to {_player}
 on chat:
     cancel event
     loop all players:
@@ -492,15 +583,26 @@ function mineroomsNoClipGuiUpdater(player: player):
         set {_r} to loop-value
         set {_r::*} to {_r} split by "."
         set {_r} to {_r::2}
-        set {_levelName} to mineroomsData("%loop-value%")
+        set {_levelName} to mineroomsData("%loop-value%.name")
+        set {_levelDanger} to mineroomsData("%loop-value%.danger")
+        set {_levelPvp} to mineroomsData("%loop-value%.pvp")
         set {_levelName} to configLang({_levelName}, {_player})
         if {_levelName} is not lang("minerooms.command.noClip.levels.-1", {_player}):
             if {_levelName} is "<none>":
                 set {_levelName} to "??"
             replace all "_" with " " in {_levelName}
             set {_i} to paper named {_levelName}
+            add {_levelDanger} to {_args::*}
+            set line 2 of lore of {_i} to superLang("minerooms.command.noClip.gui.danger", {_player}, {_args::*})
+            clear {_args::*}
+            set {_pvp} to "§2☻"
+            if {_levelPvp} is "true":
+                set {_pvp} to "§4☠"
+            add {_pvp} to {_args::*}
+            set line 3 of lore of {_i} to superLang("minerooms.command.noClip.gui.pvp", {_player}, {_args::*})
+            clear {_args::*}
             add {_levelName} to {_args::*}
-            set line 2 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
+            set line 5 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
             set slot {_sc} of {_gui} to {_i}
             clear {_args::*}
             add 1 to {_sc}
@@ -566,7 +668,7 @@ on inventory click:
                     set {_r} to loop-value
                     set {_r::*} to {_r} split by "."
                     set {_r} to {_r::2}
-                    set {_levelName} to mineroomsData("%loop-value%")
+                    set {_levelName} to mineroomsData("%loop-value%.name")
                     set {_levelNameBis} to configLang({_levelName}, player, "language", true)
                     set {_levelName} to configLang({_levelName}, player)
                     replace all "_" with " " in {_levelName}
@@ -584,8 +686,11 @@ on inventory click:
         if "%{_t}%" contain "barrier":
             if {_u} contain "Back":
                 close player's inventory
-function mineroomsGetLevel(player: player, num: integer=-1) :: text:
-    return configLang(mineroomsData("levels.%{_num}%"), {_player})
+function mineroomsGetLevel(player: player, num: integer=-1, def: boolean=false) :: text:
+    set {_r} to configLang(mineroomsData("levels.%{_num}%.name"), {_player})
+    if {_def} is false:
+        replace all "_" with " " in {_r}
+    return {_r}
 #                                      mineroomsGetAllRanks functions                                                                          #
 function mineroomsGetAllRanks() :: objects:
     loop yaml node keys "ranks" from "bck.manager.minerooms.data":
