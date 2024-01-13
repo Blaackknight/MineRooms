@@ -98,7 +98,7 @@ minerooms:
         wanderer:
             name: "§7Wanderer"
         meg_member:
-            name: "§7Member of M.E.G"
+            name: "§1Member of M.E.G"
         moderator:
             name: "§2Moderator"
         administrator:
@@ -127,12 +127,12 @@ minerooms:
                 
         99:
             lore:
-                book_1:
+                book_start:
                     name: "??"
                     author: "??"
                     pages:
                         - "Simon, when you wake up remember to take out the trash and do the dishes, you won\\'t be home late tonight so don\\'t wait for me to eat.\n\n\n\nKisses, Mom"
-                        - "Simon shut up\n\n\n\n\nKisses your mother the whore."
+                        - "Simon is bg\n\n\n\n\nKisses your mother."
                 test:
                     name: "??"
                     author: "??"

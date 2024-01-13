@@ -600,28 +600,36 @@ every 10 second:
     loop all players:
         set {_x} to loop-player
         set {bck.minerooms.temp.%{_x}'s name%.travel} to false
-on player move:
-    set {_b} to block below player
-    if {_b} is set:
-        if {bck.minerooms.temp.%player's name%.travel} is true:
-            stop
-        set {_cx} to x-coordinate of {_b}
-        set {_cy} to y-coordinate of {_b}
-        set {_cz} to z-coordinate of {_b}
-        set {_cw} to {_b}'s world
-        set {_travels::*} to yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd"
-        if {bck.minerooms.temp.%player's name%.travel} is false: 
-            if "%{_travels::*}%" contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
-                set {bck.minerooms.temp.%player's name%.travel} to true
-                loop {_travels::*}:
-                    set {_x} to loop-value
-                    set {_xs::*} to {_x} split by "|"
-                    if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
-                        set {_f} to {_xs::5}
-                        replace "Niveau_" with "" in {_f}
-                        set {_f} to {_f} parsed as integer
-                        play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for player
-                        mineroomsTravel(player, {_f}, true)
+on respawn:
+    wait 1 tick
+    if "%type of player%" is "player":
+        play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for player
+        mineroomsTravel(player, 0, true)
+        play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for player
+every 1 second:
+    loop all players:
+        set {_b} to block below loop-player
+        if {_b} is set:
+            if {bck.minerooms.temp.%loop-player's name%.travel} is true:
+                stop
+            set {_cx} to x-coordinate of {_b}
+            set {_cy} to y-coordinate of {_b}
+            set {_cz} to z-coordinate of {_b}
+            set {_cw} to {_b}'s world
+            set {_travels::*} to yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd"
+            if {bck.minerooms.temp.%loop-player's name%.travel} is false: 
+                if "%{_travels::*}%" contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                    set {bck.minerooms.temp.%loop-player's name%.travel} to true
+                    loop {_travels::*}:
+                        set {_x} to loop-value-2
+                        set {_xs::*} to {_x} split by "|"
+                        if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                            set {_f} to {_xs::5}
+                            replace "Niveau_" with "" in {_f}
+                            set {_f} to {_f} parsed as integer
+                            play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for loop-player
+                            mineroomsTravel(loop-player, {_f}, true)
+                            play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for loop-player
 
 
 function mineroomsTravel(player: player, level: integer=-1, message: boolean=true):
@@ -641,6 +649,9 @@ function mineroomsTravel(player: player, level: integer=-1, message: boolean=tru
         set {_pvp} to "§2☻"
         if {_levelPvp} is "true":
             set {_pvp} to "§4☠"
+            addPermission({_player}, "player.attack", true)
+        else:
+            removePermission({_player}, "player.attack", true)
         add "%{_levelDanger}%" to {_args::*}
         add {_pvp} to {_args::*}
         send actionbar superLang("minerooms.functions.travel.actionBar", {_player}, {_args::*}) to {_player}

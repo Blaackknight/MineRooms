@@ -99,7 +99,7 @@ minerooms:
         wanderer:
             name: "§7Explorateur"
         meg_member:
-            name: "§7Membre du M.E.G"
+            name: "§1Membre du M.E.G"
         moderator:
             name: "§2Modérateur"
         administrator:
@@ -128,12 +128,12 @@ minerooms:
                 
         99:
             lore:
-                book_1:
+                book_start:
                     name: "??"
                     author: "??"
                     pages:
                         - "Simon, quand tu te réveilleras pense à sortir la poubelle et à faire la vaiselle,  ne rentrerais pas tard ce soir alors ne m\\'attend pas pour manger.\n\n\n\nBisous, Maman"
-                        - "Simon ferme ta geule\n\n\n\n\nBisous ta mère la pute."
+                        - "Simon tu est bg\n\n\n\n\nBisous ta mère."
                 test:
                     name: "??"
                     author: "??"
