@@ -656,7 +656,7 @@ on respawn:
         play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for player
         mineroomsTravel(player, 0, true)
         play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for player
-every 1 second:
+every 10 ticks:
     loop all players:
         set {_b} to block below loop-player
         if {_b} is set:
@@ -1307,3 +1307,6 @@ function mineroomsShopAbbrevNumber(v: integer) :: text:
     else:
         set {_v} to "%{_v}%"
     return {_v}
+on damage:
+    if "%damage cause%" is "fall":
+        cancel event
