@@ -242,15 +242,15 @@ on damage:
         if hasPermission({_a}, "player.attack") is false:
             cancel event
             send lang("core.noPermission", {_a}) to {_a}
-on place:
-    set {_o} to event-location
-    set {_a} to player
-    set {_b} to event-block
-    addTempBlock(player, {_b})
-    getTempCoordinate(player, {_b})
-on break:
-    set {_o} to event-location
-    set {_a} to player
-    set {_b} to event-block
-    getTempCoordinate(player, {_b})
-    removeTempBlock(player, {_b})
+# on place:
+#     set {_o} to event-location
+#     set {_a} to player
+#     set {_b} to event-block
+#     addTempBlock(player, {_b})
+#     getTempCoordinate(player, {_b})
+# on break:
+#     set {_o} to event-location
+#     set {_a} to player
+#     set {_b} to event-block
+#     getTempCoordinate(player, {_b})
+#     removeTempBlock(player, {_b})

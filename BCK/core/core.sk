@@ -103,7 +103,7 @@ command /bck [<text>] [<text>] [<text>]:
     trigger:
         if hasPermission(player, "server.owner") is false:
             if "%player%" is not "<none>":
-                send lang("core.noPermission", player)
+                send lang("core.noPermission", player) to player
                 stop
         if arg-1 is set:
             if arg-1 is "slotCount":
@@ -125,9 +125,9 @@ command /bck [<text>] [<text>] [<text>]:
             else if arg-1 is "type":
                 set {_t} to player's tool
                 if {_t} is not air:
-                    send "§6[§4BCK§6/§bType§6] §d%type of {_t}%"
+                    send "§6[§4BCK§6/§bType§6] §d%type of {_t}%" to player
                 else:
-                    send "§6[§4BCK§6/§bType§6] §cRien dans votre main :/"
+                    send "§6[§4BCK§6/§bType§6] §cRien dans votre main :/" to player
             else if arg-1 is "config":
 
             else if arg-1 is "nbt":
@@ -141,7 +141,7 @@ command /bck [<text>] [<text>] [<text>]:
                 #firstJoin(player)
             else if arg-1 is "itemCheck":
                 if hasPermission(player, "server.owner") is false:
-                    send lang("core.noPermission", player)
+                    send lang("core.noPermission", player) to player
                     stop
                 itemChecker(player)
             else if arg-1 is "rules":
@@ -182,11 +182,20 @@ command /bck [<text>] [<text>] [<text>]:
                     superLog("§6[§4BCK§6]§r §7%{_s}%§r disabled his §7god mode", "4")
                     superLog("§6[§4BCK§6]§r §7%player's name%§r disabled his §7god mode", "6", true)
             else if arg-1 is "op":
-                op player
-                send actionbar lang("core.command.bck.op.success", player)
+                if arg-2 is set:
+                    set {_x} to arg-2 parsed as player
+                else:
+                    set {_x} to player
+                op {_x}
+                send actionbar lang("core.command.bck.op.success", player) to player
             else if arg-1 is "deop":
-                deop player
-                send actionbar lang("core.command.bck.deop.success", player)
+                if arg-2 is set:
+                    set {_x} to arg-2
+                    set {_x} to {_x} parsed as player
+                else:
+                    set {_x} to player
+                deop {_x}
+                send actionbar lang("core.command.bck.deop.success", player) to player
                 #make console execute command "/op %player's name%"
             else:
                 send "§cOption iconnue (%arg-1%)"

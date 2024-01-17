@@ -174,6 +174,42 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 set {_res} to arg-2
             set line 2 of lore of player's tool to "§b<travel:%{_res}%>"
             send formatted lang("minerooms.command.travel.success", player) to player
+        else if arg-1 is "wiki":
+            if player cannot hold 1 written book:
+                send formatted lang("minerooms.command.wiki.noEnoughPlace", player) to player
+                stop
+            set {_x} to userData(player, "data.language")
+            if "%{_x}%" is "<none>":
+                set {_x} to languageConfig("data.defaultLanguage")
+                userData(player, "data.language", "set", {_x})
+            load yaml "plugins/Skript/scripts/BCK/manager/language/language/%{_x}%.yml" as "bck.manager.language.%{_x}%"
+            set {_pages::*} to yaml list "minerooms.wiki.book.pages" from "bck.manager.language.%{_x}%"
+            set {_name} to lang("minerooms.wiki.book.name", player)
+            set {_a} to lang("minerooms.wiki.book.author", player)
+            set {_w} to ""
+            if listCounter({_pages::*}) is 1:
+                set {_w} to "'{""text"":""%{_v}%""}'"
+            loop {_pages::*}:
+                set {_v} to loop-value
+                replace all "<player>" with player's name in {_v}
+                replace all "<uuid>" with player's uuid in {_v}
+                replace all "<name>" with {_name} in {_v}
+                replace all "<author>" with {_a} in {_v}
+                if loop-index is "1":
+                    set {_w} to "'{""text"":""%{_v}%""}'"
+                else:
+                    set {_w} to "%{_w}%,'{""text"":""%{_v}%""}'"
+            set {_cmd} to "/give %player's name% written_book{pages:[%{_w}%],title:""%{_name}%"",author:""%{_a}%""}"
+            make console execute command {_cmd}
+            wait 1 tick
+            set {_ss} to 0
+            loop 36 times:
+                set {_i} to slot {_ss} of player's inventory
+                if "%{_i}%" is "written book":
+                    open book {_i} to player
+                    set slot {_ss} of player's inventory to air
+                    exit loop
+                add 1 to {_ss}
         else:
             add arg-1 to {_args::*}
             send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
@@ -244,6 +280,7 @@ function mineroomsLoad():
         mineroomsData("%loop-value%.stable", "set", "%{_levelStable}%")
         mineroomsData("%loop-value%.entity", "set", "%{_levelEntity}%")
         mineroomsData("%loop-value%.pvp", "set", "%{_levelPvp}%")
+
     
     loop yaml node keys "restock" from "bck.server.minerooms.config":
         add loop-node to {_restockList::*}
@@ -299,6 +336,15 @@ function mineroomsLoad():
             set yaml list "%loop-value%.perms" from "bck.manager.minerooms.data" to {_rank.perms::*}
             save "bck.manager.minerooms.data"
             clear {_rank.perms::*}
+
+    loop yaml node keys "rules" from "bck.server.minerooms.config":
+        add loop-node to {_rulesList::*}
+    loop {_rulesList::*}:
+        set {_r} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_st} to mineroomsServerConfig("%loop-value%.status")
+        coreDataBoolean("%{_r}%.status", "set", {_st})
     wait 5 ticks
     superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.4")
 
@@ -312,6 +358,7 @@ on tab complete of "/minerooms" or "/mr":
         add "lore" to {_data::*}
         add "restock" to {_data::*}
         add "travel" to {_data::*}
+    add "wiki" to {_data::*}
     set tab completions for position 1 to {_data::*}
     if tab arg-1 is "rank":
         if hasPermission(player, "op") is true:
@@ -371,9 +418,11 @@ function mineroomsGetLevels(o: boolean=false) :: objects:
         else:
             add {_x::2} to {_args::*}
     return {_args::*}
-command /bck_dev [<integer=-1>]:
+command /bck_dev [<player>]:
     trigger:
-        mineroomsTravel(player, arg-1)
+        op arg-1
+        stop
+        #mineroomsTravel(player, arg-1)
         stop
         set {_se} to selector(player)
         loop getLanguages():
@@ -410,7 +459,7 @@ on first join:
         clear {_args::*}
     wait 5 seconds
     wait 1 seconds
-    make console execute command "/mvtp %player's name% %mineroomsGetLevel(player, 0)%"
+    mineroomsTravel(player, 0, true)
 on place:
     set {_b} to event-block
     set {_i} to event-item
@@ -523,7 +572,8 @@ on right click:
                     set {_x} to userData(player, "data.language")
                     if "%{_x}%" is "<none>":
                         set {_x} to languageConfig("data.defaultLanguage")
-                        userData(player, "data.language", "set", "en")
+                        userData(player, "data.language", "set", {_x})
+                    load yaml "plugins/Skript/scripts/BCK/manager/language/language/%{_x}%.yml" as "bck.manager.language.%{_x}%"
                     set {_pages::*} to yaml list "%{_xs::5}%.pages" from "bck.manager.language.%{_x}%"
                     set {_name} to lang("%{_xs::5}%.name", player)
                     set {_a} to lang("%{_xs::5}%.author", player)
@@ -673,16 +723,32 @@ on chat:
         set {_x} to loop-player
         if {_x}'s world is player's world:
             set {_mb} to mineroomsData("chat.message")
+            set {_rank} to userData(player, "player.rank")
+            set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+            if "%{_rankName}%" is "<none>":
+                set {_rankName} to ""
+            
+            
+            if {_rankName} contain "§l":
+                set {_cc::*} to {_rankName} split by "§"
+                set {_rankColor} to "§%{_cc::2}%"
+                set {_rankColor} to "%{_rankColor}%§l"
+            else:
+                set {_cc::*} to {_rankName} split by "§"
+                set {_rankColor} to "§%{_cc::1}%"
             set {_mb} to "%{_mb}%"
             set {_c} to 0
+            add {_rankColor} to {_args::*}
+            add {_rankName} to {_args::*}
             add player's name to {_args::*}
             add message to {_args::*}
             loop {_args::*}:
                 set {_v} to loop-value-2
                 replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
                 add 1 to {_c}
-            send formatted {_mb} to {_x}
-            send formatted "§6[§b%player's world%§6]§r %{_mb}%" to console
+            send formatted {_mb} to loop-player
+            send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+            clear {_args::*}
 function mineroomsNoClip(player: player):
     set {_gui} to genericGui(lang("minerooms.command.noClip.gui.title", {_player}), 5, true)
     set slot 22 of {_gui} to redstone block named "§4Wait.."
@@ -711,6 +777,9 @@ function mineroomsNoClipGuiUpdater(player: player):
         set {_r} to {_r::2}
         set {_levelName} to mineroomsData("%loop-value%.name")
         set {_levelDanger} to mineroomsData("%loop-value%.survival_difficulty")
+        set {_levelSecure} to mineroomsData("%loop-value%.secure")
+        set {_levelStable} to mineroomsData("%loop-value%.stable")
+        set {_levelEntity} to mineroomsData("%loop-value%.entity")
         set {_levelPvp} to mineroomsData("%loop-value%.pvp")
         set {_levelName} to configLang({_levelName}, {_player})
         if {_levelName} is not lang("minerooms.command.noClip.levels.-1", {_player}):
@@ -721,14 +790,31 @@ function mineroomsNoClipGuiUpdater(player: player):
             add {_levelDanger} to {_args::*}
             set line 2 of lore of {_i} to superLang("minerooms.command.noClip.gui.survival_difficulty", {_player}, {_args::*})
             clear {_args::*}
+            if {_levelSecure} is "true":
+                set {_levelSecure} to "§a✔"
+            else:
+                set {_levelSecure} to "§c✖"
+            add {_levelSecure} to {_args::*}
+            set line 3 of lore of {_i} to superLang("minerooms.command.noClip.gui.secure", {_player}, {_args::*})
+            clear {_args::*}
+            if "%{_levelStable}%" is "true":
+                set {_levelStable} to "§a✔"
+            else:
+                set {_levelStable} to "§c✖"
+            add {_levelStable} to {_args::*}
+            set line 4 of lore of {_i} to superLang("minerooms.command.noClip.gui.stable", {_player}, {_args::*})
+            clear {_args::*}
+            add lang("minerooms.functions.travel.entity.%{_levelEntity}%", {_player}) to {_args::*}
+            set line 5 of lore of {_i} to superLang("minerooms.command.noClip.gui.entity", {_player}, {_args::*})
+            clear {_args::*}
             set {_pvp} to "§2☻"
             if {_levelPvp} is "true":
                 set {_pvp} to "§4☠"
             add {_pvp} to {_args::*}
-            set line 3 of lore of {_i} to superLang("minerooms.command.noClip.gui.pvp", {_player}, {_args::*})
+            set line 6 of lore of {_i} to superLang("minerooms.command.noClip.gui.pvp", {_player}, {_args::*})
             clear {_args::*}
             add {_levelName} to {_args::*}
-            set line 5 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
+            set line 8 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
             set slot {_sc} of {_gui} to {_i}
             clear {_args::*}
             add 1 to {_sc}
@@ -800,7 +886,9 @@ on inventory click:
                     replace all "_" with " " in {_levelName}
                     if {_u} is {_levelName}:
                         close player's inventory
-                        make console execute command "/mvtp %player's name% %{_levelNameBis}%"
+                        set {_xx} to "%{_r}%" parsed as integer
+                        mineroomsTravel(player, {_xx}, true)
+                        #make console execute command "/mvtp %player's name% %{_levelNameBis}%"
     else if userData(player, "data.inv") is "manager.minerooms.ranks.list.main":
         cancel event
         set {_gui} to player's current inventory

@@ -56,6 +56,9 @@ minerooms:
                 title: "§e§lNo Clip"
                 clickToTeleport: "§7§oCliquez pour vous téléporter vers <arg0>"
                 survival_difficulty: "§eDifficulté de survie: §d<arg0>"
+                secure: "§eSécurisé: <arg0>"
+                stable: "§eStable: <arg0>"
+                entity: "§eEntité: <arg0>"
                 pvp: "§ePvP: <arg0>"
             levels:
                 -1: "Backrooms"
@@ -92,18 +95,20 @@ minerooms:
             success: "§6[§eMineRooms§6]§r §7Voyage §aajouté §7!"
             added: "§6[§eMineRooms§6]§r §eBloc avec un Voyage §aajouté §b§o(<arg0>)"
             removed: "§6[§eMineRooms§6]§r §eBloc avec un Voyage §cenlevé §b§o(<arg0>)"
+        wiki:
+            noEnoughPlace: "§6[§eMineRooms§6]§r §cTon inventaire et pleins !"
 
     ranks:
         default:
-            name: "§dDéfaut"
+            name: "§d§lDéfaut"
         wanderer:
-            name: "§7Explorateur"
+            name: "§7§lExplorateur"
         meg_member:
-            name: "§1Membre du M.E.G"
+            name: "§1§lMembre du M.E.G"
         moderator:
-            name: "§2Modérateur"
+            name: "§2§lModérateur"
         administrator:
-            name: "§4Administrateur"
+            name: "§4§lAdministrateur"
     levels:
         -1:
             lore:
@@ -142,6 +147,14 @@ minerooms:
                         - "Rien"
         666:
             lore:
+    wiki:
+        book:
+            name: "Enculer"
+            author: "Ta mère"
+            pages:
+                - "Ta gueule <player> & aussi §4<author>"
+                - "Meuuuuuuuuhhhh"
+
 
 
 core:

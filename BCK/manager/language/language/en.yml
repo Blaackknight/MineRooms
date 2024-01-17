@@ -56,6 +56,9 @@ minerooms:
                 title: "§e§lNo Clip"
                 clickToTeleport: "§7§oClick to teleport to <arg0>"
                 survival_difficulty: "§eSurvival difficulty: §d<arg0>"
+                secure: "§eSecure: <arg0>"
+                stable: "§eStable: <arg0>"
+                entity: "§eEntity: <arg0>"
                 pvp: "§ePvP: <arg0>"
             levels:
                 -1: "Backrooms"
@@ -92,17 +95,19 @@ minerooms:
             success: "§6[§eMineRooms§6]§r §7Travel §aadded §7!"
             added: "§6[§eMineRooms§6]§r §eBlock with a travel §aadded §b§o(<arg0>)"
             removed: "§6[§eMineRooms§6]§r §eBlock with a travel §cremoved §b§o(<arg0>)"
+        wiki:
+            noEnoughPlace: "§6[§eMineRooms§6]§r §cYour inventory is full !"
     ranks:
         default:
-            name: "§dDefault"
+            name: "§d§lDefault"
         wanderer:
-            name: "§7Wanderer"
+            name: "§7§lWanderer"
         meg_member:
-            name: "§1Member of M.E.G"
+            name: "§1§lMember of M.E.G"
         moderator:
-            name: "§2Moderator"
+            name: "§2§lModerator"
         administrator:
-            name: "§4Administrator"
+            name: "§4§lAdministrator"
     levels:
         -1:
             lore:
@@ -141,6 +146,13 @@ minerooms:
                         - "Nothing"
         666:
             lore:
+    wiki:
+        book:
+            name: "Enculer"
+            author: "Ta mère"
+            pages:
+                - "Ta gueule <player>"
+                - "Meuuuuuuuuhhhh"
             
 core:
     noPermission: "§c§lHey! §7You don't have permission :|"
