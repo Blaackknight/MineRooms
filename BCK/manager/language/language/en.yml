@@ -2,7 +2,7 @@ language:
     unknownOption: "§cUnknown option"
     languageNotFound: "§cLanguage not found.."
     noPermission: "§c§lHey! §7You don't have permission :|"
-    languageClientSetTo: "§eYour §llanguage§r§l has just been §achanged to§r"
+    languageClientSetTo: "§eYour §llanguage§r§l has just been §achanged §eto§r"
     languageServerSetTo: "§eThe §4§lBCK§e language on the server side has just been §achanged to§r"
 manager:
 other:
@@ -151,7 +151,7 @@ minerooms:
             name: "Enculer"
             author: "Ta mère"
             pages:
-                - "Ta gueule <player>"
+                - "Welcome §7<player>§r to §6§lMineRooms §r!"
                 - "Meuuuuuuuuhhhh"
             
 core:

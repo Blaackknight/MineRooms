@@ -13,9 +13,9 @@ command /language [<text>] [<text>]:
             if arg-1 is "client":
                 if arg-2 is set:
                     if getLanguages() contains arg-2:
-                        set {_uuu} to lang("language.languageClientSetTo", player)
-                        send "%{_uuu}% §b§l%arg-2%"
                         userData(player, "data.language", "set", arg-2)
+                        set {_uuu} to lang("language.languageClientSetTo", player)
+                        send formatted "%{_uuu}% §b§l%arg-2%" to player
                         logCustom("§7%selector(player)% §rlanguage changed to §7%arg-2%")
                     else:
                         send lang("language.languageNotFound", player)
