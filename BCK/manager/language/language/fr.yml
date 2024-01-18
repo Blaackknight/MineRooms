@@ -39,6 +39,8 @@ minerooms:
                 name: "§bBureau Abandonné"
             5: 
                 name: "§4Hôtel de la terreur"
+            6:
+                name: "§8Couvre Feu"
             99: 
                 name: "??"
             666: 
@@ -68,6 +70,7 @@ minerooms:
                 3: "Niveau_3"
                 4: "Niveau_4"
                 5: "Niveau_5"
+                6: "Niveau_6"
                 99: "Niveau_99"
                 666: "Niveau_666"
         ranks:
@@ -129,6 +132,9 @@ minerooms:
             lore:
                 
         5:
+            lore:
+
+        6:
             lore:
                 
         99:

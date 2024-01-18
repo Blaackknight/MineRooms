@@ -262,6 +262,18 @@ function mineroomsLoad():
         set {_levelStable} to yaml value "%loop-value%.stable" from "bck.server.minerooms.config"
         set {_levelEntity} to yaml value "%loop-value%.entity" from "bck.server.minerooms.config"
         set {_levelPvp} to yaml value "%loop-value%.pvp" from "bck.server.minerooms.config"
+        set {_levelOpenDoor} to yaml value "%loop-value%.openDoor" from "bck.server.minerooms.config"
+        set {_levelOpenTrapDoor} to yaml value "%loop-value%.openTrapDoor" from "bck.server.minerooms.config"
+        set {_levelBreakItemFrame} to yaml value "%loop-value%.breakItemFrame" from "bck.server.minerooms.config"
+        set {_levelBreakArmorStand} to yaml value "%loop-value%.breakArmorStand" from "bck.server.minerooms.config"
+        set {_levelBreakPainting} to yaml value "%loop-value%.breakPainting" from "bck.server.minerooms.config"
+        set {_levelGrabFlowerPot} to yaml value "%loop-value%.grabFlowerPot" from "bck.server.minerooms.config"
+        set {_levelEditSign} to yaml value "%loop-value%.editSign" from "bck.server.minerooms.config"
+        set {_levelDropItem} to yaml value "%loop-value%.dropItem" from "bck.server.minerooms.config"
+        set {_levelFallDamage} to yaml value "%loop-value%.fallDamage" from "bck.server.minerooms.config"
+        set {_levelEffectType} to yaml value "%loop-value%.effect.type" from "bck.server.minerooms.config"
+        set {_levelEffectEffects::*} to yaml list "%loop-value%.effect.effects" from "bck.server.minerooms.config"
+        set {_levelMobSpawnAlloy::*} to yaml list "%loop-value%.mobSpawn.alloy" from "bck.server.minerooms.config"
         if "%{_levelName}%" is "<none>":
             set {_levelName} to "??"
         if "%{_levelDanger}%" is "<none>":
@@ -274,13 +286,45 @@ function mineroomsLoad():
             set {_levelEntity} to "0"
         if "%{_levelPvp}%" is "<none>":
             set {_levelPvp} to "false"
+        if "%{_levelOpenDoor}%" is "<none>":
+            set {_levelOpenDoor} to "false"
+        if "%{_levelOpenTrapDoor}%" is "<none>":
+            set {_levelOpenTrapDoor} to "false"
+        if "%{_levelBreakItemFrame}%" is "<none>":
+            set {_levelBreakItemFrame} to "false"
+        if "%{_levelBreakArmorStand}%" is "<none>":
+            set {_levelBreakArmorStand} to "false"
+        if "%{_levelBreakPainting}%" is "<none>":
+            set {_levelBreakPainting} to "false"
+        if "%{_levelGrabFlowerPot}%" is "<none>":
+            set {_levelGrabFlowerPot} to "false"
+        if "%{_levelEditSign}%" is "<none>":
+            set {_levelEditSign} to "false"
+        if "%{_levelDropItem}%" is "<none>":
+            set {_levelDropItem} to "false"
+        if "%{_levelFallDamage}%" is "<none>":
+            set {_levelFallDamage} to "false"
+        if "%{_levelEffectType}%" is "<none>":
+            set {_levelEffectType} to "1"
         mineroomsData("%loop-value%.name", "set", "%{_levelName}%")
         mineroomsData("%loop-value%.survival_difficulty", "set", "%{_levelDanger}%")
         mineroomsData("%loop-value%.secure", "set", "%{_levelSecure}%")
         mineroomsData("%loop-value%.stable", "set", "%{_levelStable}%")
         mineroomsData("%loop-value%.entity", "set", "%{_levelEntity}%")
         mineroomsData("%loop-value%.pvp", "set", "%{_levelPvp}%")
-
+        mineroomsData("%loop-value%.openDoor", "set", "%{_levelOpenDoor}%")
+        mineroomsData("%loop-value%.openTrapDoor", "set", "%{_levelOpenTrapDoor}%")
+        mineroomsData("%loop-value%.breakItemFrame", "set", "%{_levelBreakItemFrame}%")
+        mineroomsData("%loop-value%.breakArmorStand", "set", "%{_levelBreakArmorStand}%")
+        mineroomsData("%loop-value%.breakPainting", "set", "%{_levelBreakPainting}%")
+        mineroomsData("%loop-value%.grabFlowerPot", "set", "%{_levelBreakPainting}%")
+        mineroomsData("%loop-value%.editSign", "set", "%{_levelEditSign}%")
+        mineroomsData("%loop-value%.dropItem", "set", "%{_levelDropItem}%")
+        mineroomsData("%loop-value%.fallDamage", "set", "%{_levelFallDamage}%")
+        mineroomsData("%loop-value%.effect.type", "set", "%{_levelEffectType}%")
+        set yaml list "%loop-value%.effect.effects" from "bck.manager.minerooms.data" to  {_levelEffectEffects::*}
+        set yaml list "%loop-value%.mobSpawn.allow" from "bck.manager.minerooms.data" to  {_levelMobSpawnAlloy::*}
+        save "bck.manager.minerooms.data"
     
     loop yaml node keys "restock" from "bck.server.minerooms.config":
         add loop-node to {_restockList::*}
@@ -549,13 +593,110 @@ on break:
                 add {_x} to {_r::*}
         set yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd" to {_r::*}
         save yaml "bck.manager.minerooms.bdd"
+on break of item frame:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if mineroomsData("levels.%{_name}%.breakItemFrame") is "false":
+        if "%player's gamemode%" is not "creative":
+            cancel event
+on break of armor stand:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if mineroomsData("levels.%{_name}%.breakArmorStand") is "false":
+        if "%player's gamemode%" is not "creative":
+            cancel event
+on break of painting:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if mineroomsData("levels.%{_name}%.breakPainting") is "false":
+        if "%player's gamemode%" is not "creative":
+            cancel event
+on damage:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if victim is item frame:
+        if mineroomsData("levels.%{_name}%.breakItemFrame") is "false":
+            if "%attacker's gamemode%" is not "creative":
+                cancel event
+    if victim is armor stand:
+        if mineroomsData("levels.%{_name}%.breakArmorStand") is "false":
+            if "%attacker's gamemode%" is not "creative":
+                cancel event
+    if victim is painting:
+        if mineroomsData("levels.%{_name}%.breakPainting") is "false":
+            if "%attacker's gamemode%" is not "creative":
+                cancel event
+on right click on item frame:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if mineroomsData("levels.%{_name}%.breakItemFrame") is "false":
+        if "%player's tool%" is not "air":
+            if "%player's gamemode%" is not "creative":
+                cancel event
+                stop
+on right click on armor stand:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if mineroomsData("levels.%{_name}%.breakArmorStand") is "false":
+        if "%player's gamemode%" is not "creative":
+            cancel event
+            stop
+on drop:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if mineroomsData("levels.%{_name}%.dropItem") is "false":
+        if "%player's gamemode%" is not "creative":
+            cancel event
+            stop
+on spawn:
+    set {_e} to event-entity
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    set {_a::*} to yaml list "levels.%{_name}%.mobSpawn.alloy" from "bck.manager.minerooms.data"
+    set {_t} to "%type of {_e}%"
+    if {_t} contain "dropped":
+        stop
+    replace all "_" with " " in {_t}
+    if {_a::*} doesn't contain "%{_t}%":
+        cancel event
+        #broadcast "%type of {_e}% => §ccancelled"
 on right click:
     set {_e} to event-entity
     set {_b} to event-block
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
     if {_b} is set:
         set {_cx} to x-coordinate of {_b}
         set {_cy} to y-coordinate of {_b}
         set {_cz} to z-coordinate of {_b}
+        if "%type of {_b}%" is "filled composter":
+            cancel event
+            stop
+        if "%type of {_b}%" is "filled composter":
+            if "%player's tool%" is not "air":
+                if "%player's gamemode%" is not "creative":
+                    cancel event
+                    stop
+        if "%type of {_b}%" contain "sign":
+            if mineroomsData("levels.%{_name}%.editSign") is "false":
+                if "%player's gamemode%" is not "creative":
+                    cancel event
+                    stop
+        if "%type of {_b}%" contain "pot":
+            if mineroomsData("levels.%{_name}%.grabFlowerPot") is "false":
+                if "%player's gamemode%" is not "creative":
+                    cancel event
+                    stop
+        if "%type of {_b}%" contain "door":
+            if "%type of {_b}%" contain "trapdoor":
+                if mineroomsData("levels.%{_name}%.openTrapDoor") is "false":
+                    if "%player's gamemode%" is not "creative":
+                        cancel event
+                        stop
+            else if mineroomsData("levels.%{_name}%.openDoor") is "false":
+                if "%player's gamemode%" is not "creative":
+                    cancel event
+                    stop
         set {_cw} to {_b}'s world
         set {_blocks::*} to yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.bdd"
         set {_supplys::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.bdd"
@@ -690,9 +831,43 @@ function mineroomsTravel(player: player, level: integer=-1, message: boolean=tru
     set {_levelStable} to mineroomsData("levels.%{_level}%.stable")
     set {_levelEntity} to mineroomsData("levels.%{_level}%.entity")
     set {_levelPvp} to mineroomsData("levels.%{_level}%.pvp")
+    set {_levelEffectType} to mineroomsData("levels.%{_level}%.effect.type")
+    set {_levelEffectEffects::*} to yaml list "levels.%{_level}%.effect.effects" from "bck.manager.minerooms.data"
     set {_levelNameBis} to configLang({_levelName}, {_player}, "language", true)
     make console execute command "/mvtp %{_player}'s name% %{_levelNameBis}%"
     wait 1 tick
+    clear all the potion effects of {_player}
+    if "%{_levelEffectType}%" is "1":
+        loop {_levelEffectEffects::*}:
+            set {_v} to loop-value
+            set {_data::*} to "%{_v}%" split by "|"
+            set {_e} to {_data::1}
+            set {_t} to {_data::2}
+            set {_d} to {_data::3}
+            set {_dd} to {_d}
+            set {_p} to {_data::4}
+            set {_e} to "%{_e}%"
+            replace all "_" with " " in {_e}
+            set {_e} to "%{_e}%" parsed as potiontype
+            set {_t} to "%{_t}%" parsed as integer
+            set {_d} to "%{_d}%" parsed as integer
+            set {_p} to "%{_p}%" parsed as boolean
+            if {_t} is not set:
+                set {_t} to 1
+            if {_d} is not set:
+                set {_d} to 20
+            set {_di} to {_d} * 20
+            if {_p} is not set:
+                set {_p} to false
+            if {_p} is false:
+                if {_dd} is "inf":
+                    apply infinite potion of {_e} of tier {_t} without particles to {_player}
+                else:
+                    set {_f} to potion effect of {_e} of tier {_t} without particles for {_di}
+                    add {_f} to potion effects of {_player}
+            else:
+                set {_f} to potion effect of {_e} of tier {_t} for {_di}
+                add {_f} to potion effects of {_player}
     if {_message} is true:
         send title mineroomsGetLevel({_player}, {_level}) to {_player}
         send subtitle lang("minerooms.functions.travel.%{_level}%.name", {_player}) to {_player}
@@ -1308,5 +1483,10 @@ function mineroomsShopAbbrevNumber(v: integer) :: text:
         set {_v} to "%{_v}%"
     return {_v}
 on damage:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
     if "%damage cause%" is "fall":
-        cancel event
+        if mineroomsData("levels.%{_name}%.fallDamage") is "false":
+            if "%victim's gamemode%" is not "creative":
+                cancel event
+                stop
