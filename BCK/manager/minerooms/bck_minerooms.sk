@@ -155,6 +155,24 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 set {_res} to arg-2
             set line 2 of lore of player's tool to "§b<restock:%{_res}%>"
             send formatted lang("minerooms.command.restock.success", player) to player
+        else if arg-1 is "coordinate":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            if arg-2 is not set:
+                send formatted lang("minerooms.command.coordinate.translationKeyMissing", player) to player
+                stop
+            set {_data::*} to arg-2 split by "_"
+            set {_x} to {_data::1}
+            set {_y} to {_data::2}
+            set {_z} to {_data::3}
+            set {_i} to player's tool
+            if {_i} is air:
+                send formatted lang("minerooms.command.coordinate.handIsEmpty", player) to player
+                stop
+            set line 2 of lore of player's tool to "§a<coordinate:%{_x}%_%{_y}%_%{_z}%>"
+            send formatted lang("minerooms.command.coordinate.success", player) to player
         else if arg-1 is "travel":
             if hasPermission(player, "op") is false:
                 add arg-1 to {_args::*}
@@ -250,13 +268,17 @@ function mineroomsLoad():
 
     mineroomsData("chat.message", "set", mineroomsServerConfig("chat.message"))
 
+    mineroomsData("decoCombat.time", "set", mineroomsServerConfig("decoCombat.time"))
+
     loop yaml node keys "levels" from "bck.server.minerooms.config":
         add loop-node to {_levelsList::*}
     loop {_levelsList::*}:
         set {_r} to loop-value
         set {_r::*} to {_r} split by "."
         set {_r} to {_r::2}
-        set {_levelName} to mineroomsServerConfig("%loop-value%.name")
+        if "%{_r::3}%" is not "<none>":
+            set {_r} to "%{_r::2}%-%{_r::3}%"
+        set {_levelName} to mineroomsServerConfig("levels.%{_r}%.name")
         set {_levelDanger} to yaml value "%loop-value%.survival_difficulty" from "bck.server.minerooms.config"
         set {_levelSecure} to yaml value "%loop-value%.secure" from "bck.server.minerooms.config"
         set {_levelStable} to yaml value "%loop-value%.stable" from "bck.server.minerooms.config"
@@ -271,6 +293,7 @@ function mineroomsLoad():
         set {_levelEditSign} to yaml value "%loop-value%.editSign" from "bck.server.minerooms.config"
         set {_levelDropItem} to yaml value "%loop-value%.dropItem" from "bck.server.minerooms.config"
         set {_levelFallDamage} to yaml value "%loop-value%.fallDamage" from "bck.server.minerooms.config"
+        set {_levelDecoCombat} to yaml value "%loop-value%.decoCombat" from "bck.server.minerooms.config"
         set {_levelEffectType} to yaml value "%loop-value%.effect.type" from "bck.server.minerooms.config"
         set {_levelEffectEffects::*} to yaml list "%loop-value%.effect.effects" from "bck.server.minerooms.config"
         set {_levelMobSpawnAlloy::*} to yaml list "%loop-value%.mobSpawn.alloy" from "bck.server.minerooms.config"
@@ -304,6 +327,8 @@ function mineroomsLoad():
             set {_levelDropItem} to "false"
         if "%{_levelFallDamage}%" is "<none>":
             set {_levelFallDamage} to "false"
+        if "%{_levelDecoCombat}%" is "<none>":
+            set {_levelDecoCombat} to "false"
         if "%{_levelEffectType}%" is "<none>":
             set {_levelEffectType} to "1"
         mineroomsData("%loop-value%.name", "set", "%{_levelName}%")
@@ -321,6 +346,7 @@ function mineroomsLoad():
         mineroomsData("%loop-value%.editSign", "set", "%{_levelEditSign}%")
         mineroomsData("%loop-value%.dropItem", "set", "%{_levelDropItem}%")
         mineroomsData("%loop-value%.fallDamage", "set", "%{_levelFallDamage}%")
+        mineroomsData("%loop-value%.decoCombat", "set", "%{_levelDecoCombat}%")
         mineroomsData("%loop-value%.effect.type", "set", "%{_levelEffectType}%")
         set yaml list "%loop-value%.effect.effects" from "bck.manager.minerooms.data" to  {_levelEffectEffects::*}
         set yaml list "%loop-value%.mobSpawn.allow" from "bck.manager.minerooms.data" to  {_levelMobSpawnAlloy::*}
@@ -401,6 +427,7 @@ on tab complete of "/minerooms" or "/mr":
         add "noclip" to {_data::*}
         add "lore" to {_data::*}
         add "restock" to {_data::*}
+        add "coordinate" to {_data::*}
         add "travel" to {_data::*}
     add "wiki" to {_data::*}
     set tab completions for position 1 to {_data::*}
@@ -430,14 +457,12 @@ on tab complete of "/minerooms" or "/mr":
                 set {_x::*} to loop-value split by "."
                 add {_x::2} to {_args::*}
             set tab completions for position 2 to {_args::*}
+    else if tab arg-1 is "coordinate":
+        if hasPermission(player, "op") is true:
+            
     else if tab arg-1 is "travel":
         if hasPermission(player, "op") is true:
-            loop yaml node keys "levels" from "bck.manager.minerooms.data":
-                add loop-node to {_dataList::*}
-            loop {_dataList::*}:
-                set {_x::*} to loop-value split by "."
-                add "Niveau_%{_x::2}%" to {_args::*}
-            set tab completions for position 2 to {_args::*}
+            set tab completions for position 2 to mineroomsGetLevels(true)
 on join:
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
@@ -457,10 +482,13 @@ function mineroomsGetLevels(o: boolean=false) :: objects:
         add loop-node to {_dataList::*}
     loop {_dataList::*}:
         set {_x::*} to loop-value split by "."
+        set {_v} to {_x::2}
+        if "%{_v}%" contain "-":
+            replace all "-" with "." in {_v}
         if {_o} is true:
-            add "Niveau_%{_x::2}%" to {_args::*}
+            add "Niveau_%{_v}%" to {_args::*}
         else:
-            add {_x::2} to {_args::*}
+            add {_v} to {_args::*}
     return {_args::*}
 command /bck_dev [<player>]:
     trigger:
@@ -501,6 +529,7 @@ on first join:
             add 1 to {_num}
         send formatted {_r} to player
         clear {_args::*}
+    make console execute command "/team join wanderer %player's name%"
     wait 5 seconds
     wait 1 seconds
     mineroomsTravel(player, 0, true)
@@ -536,6 +565,22 @@ on place:
         add {_k} to {_args::*}
         send actionbar formatted superLang("minerooms.command.restock.added", player, {_args::*}) to player
         play sound "entity.experience_orb.pickup" with volume 0.3 for player
+    else if {_x} contain "<coordinate:":
+        set {_data::*} to {_x} split by ":"
+        set {_k} to {_data::2}
+        replace ">" with "" in {_k}
+        set {_coo::*} to {_k} split by "_"
+        set {_x} to {_coo::1}
+        set {_y} to {_coo::2}
+        set {_z} to {_coo::3}
+        set {_loc} to location({_x}, {_y}, {_z})
+        set {_coordinates::*} to yaml list "minerooms.coordinate.coordinates" from "bck.manager.minerooms.bdd"
+        add "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%|%{_x}%|%{_y}%|%{_z}%" to {_coordinates::*}
+        set yaml list "minerooms.coordinate.coordinates" from "bck.manager.minerooms.bdd" to {_coordinates::*}
+        save yaml "bck.manager.minerooms.bdd"
+        add "%{_x}%_%{_y}%_%{_z}%" to {_args::*}
+        send actionbar formatted superLang("minerooms.command.coordinate.added", player, {_args::*}) to player
+        play sound "entity.experience_orb.pickup" with volume 0.3 for player
     else if {_x} contain "<travel:":
         set {_data::*} to {_x} split by ":"
         set {_k} to {_data::2}
@@ -557,6 +602,7 @@ on break:
     set {_blocks::*} to yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.bdd"
     set {_supplys::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.bdd"
     set {_travels::*} to yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd"
+    set {_coordinates::*} to yaml list "minerooms.coordinate.coordinates" from "bck.manager.minerooms.bdd"
     if "%{_blocks::*}%" contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
         loop {_blocks::*}:
             set {_x} to loop-value
@@ -592,6 +638,18 @@ on break:
             else:
                 add {_x} to {_r::*}
         set yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd" to {_r::*}
+        save yaml "bck.manager.minerooms.bdd"
+    else if "%{_coordinates::*}%" contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+        loop {_coordinates::*}:
+            set {_x} to loop-value
+            set {_xs::*} to {_x} split by "|"
+            if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                add "%{_xs::5}%_%{_xs::6}%_%{_xs::7}%" to {_args::*}
+                send actionbar formatted superLang("minerooms.command.coordinate.removed", player, {_args::*}) to player
+                play sound "block.note_block.bit" with volume 0.3 with pitch 0 for player
+            else:
+                add {_x} to {_r::*}
+        set yaml list "minerooms.coordinate.coordinates" from "bck.manager.minerooms.bdd" to {_r::*}
         save yaml "bck.manager.minerooms.bdd"
 on break of item frame:
     set {_name} to "%event-world%"
@@ -655,6 +713,16 @@ on spawn:
     set {_a::*} to yaml list "levels.%{_name}%.mobSpawn.alloy" from "bck.manager.minerooms.data"
     set {_t} to "%type of {_e}%"
     if {_t} contain "dropped":
+        stop
+    if {_t} contain "painting":
+        stop
+    if {_t} contain "item frame":
+        stop
+    if {_t} contain "armor stand":
+        stop
+    if {_t} contain "falling":
+        stop
+    if {_t} contain "block display":
         stop
     replace all "_" with " " in {_t}
     if {_a::*} doesn't contain "%{_t}%":
@@ -791,6 +859,7 @@ every 10 second:
     loop all players:
         set {_x} to loop-player
         set {bck.minerooms.temp.%{_x}'s name%.travel} to false
+        set {bck.minerooms.temp.%{_x}'s name%.coordinate} to false
 on respawn:
     wait 1 tick
     if "%type of player%" is "player":
@@ -803,12 +872,14 @@ every 10 ticks:
         if {_b} is set:
             if {bck.minerooms.temp.%loop-player's name%.travel} is true:
                 stop
+            if {bck.minerooms.temp.%loop-player's name%.coordinate} is true:
+                stop
             set {_cx} to x-coordinate of {_b}
             set {_cy} to y-coordinate of {_b}
             set {_cz} to z-coordinate of {_b}
             set {_cw} to {_b}'s world
-            set {_travels::*} to yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd"
             if {bck.minerooms.temp.%loop-player's name%.travel} is false: 
+                set {_travels::*} to yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd"
                 if "%{_travels::*}%" contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
                     set {bck.minerooms.temp.%loop-player's name%.travel} to true
                     loop {_travels::*}:
@@ -816,23 +887,46 @@ every 10 ticks:
                         set {_xs::*} to {_x} split by "|"
                         if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
                             set {_f} to {_xs::5}
+                            if "%{_f}%" contain "-":
+                                set {_f} to "%{_f}%"
+                                replace all "-" with "." in {_f}
                             replace "Niveau_" with "" in {_f}
-                            set {_f} to {_f} parsed as integer
+                            set {_f} to "%{_f}%" parsed as number
                             play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for loop-player
                             mineroomsTravel(loop-player, {_f}, true)
                             play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for loop-player
+            if {bck.minerooms.temp.%loop-player's name%.coordinate} is false: 
+                set {_coordinates::*} to yaml list "minerooms.coordinate.coordinates" from "bck.manager.minerooms.bdd"
+                if "%{_coordinates::*}%" contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                    set {bck.minerooms.temp.%loop-player's name%.coordinate} to true
+                    loop {_coordinates::*}:
+                        set {_x} to loop-value-2
+                        set {_xs::*} to {_x} split by "|"
+                        if {_x} contain "%{_cx}%|%{_cy}%|%{_cz}%|%{_cw}%":
+                            set {_x} to {_xs::5}
+                            set {_x} to "%{_x}%" parsed as number
+                            set {_y} to {_xs::6}
+                            set {_y} to "%{_y}%" parsed as number
+                            set {_z} to {_xs::7}
+                            set {_z} to "%{_z}%" parsed as number
+                            set {_ww} to world({_cw})
+                            set {_ff} to location({_x},{_y},{_z},{_ww})
+                            teleport loop-player to {_ff}
+                            send "%{_ff}%" to loop-player
+                            play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for loop-player
 
 
-function mineroomsTravel(player: player, level: integer=-1, message: boolean=true):
-    set {_x} to mineroomsGetLevel({_player}, {_level})
-    set {_levelName} to mineroomsData("levels.%{_level}%.name")
-    set {_levelDanger} to mineroomsData("levels.%{_level}%.survival_difficulty")
-    set {_levelSecure} to mineroomsData("levels.%{_level}%.secure")
-    set {_levelStable} to mineroomsData("levels.%{_level}%.stable")
-    set {_levelEntity} to mineroomsData("levels.%{_level}%.entity")
-    set {_levelPvp} to mineroomsData("levels.%{_level}%.pvp")
-    set {_levelEffectType} to mineroomsData("levels.%{_level}%.effect.type")
-    set {_levelEffectEffects::*} to yaml list "levels.%{_level}%.effect.effects" from "bck.manager.minerooms.data"
+function mineroomsTravel(player: player, level: number=-1, message: boolean=true):
+    set {_levelBis} to "%{_level}%"
+    replace all "." with "-" in {_levelBis}
+    set {_levelName} to mineroomsData("levels.%{_levelBis}%.name")
+    set {_levelDanger} to mineroomsData("levels.%{_levelBis}%.survival_difficulty")
+    set {_levelSecure} to mineroomsData("levels.%{_levelBis}%.secure")
+    set {_levelStable} to mineroomsData("levels.%{_levelBis}%.stable")
+    set {_levelEntity} to mineroomsData("levels.%{_levelBis}%.entity")
+    set {_levelPvp} to mineroomsData("levels.%{_levelBis}%.pvp")
+    set {_levelEffectType} to mineroomsData("levels.%{_levelBis}%.effect.type")
+    set {_levelEffectEffects::*} to yaml list "levels.%{_levelBis}%.effect.effects" from "bck.manager.minerooms.data"
     set {_levelNameBis} to configLang({_levelName}, {_player}, "language", true)
     make console execute command "/mvtp %{_player}'s name% %{_levelNameBis}%"
     wait 1 tick
@@ -869,8 +963,10 @@ function mineroomsTravel(player: player, level: integer=-1, message: boolean=tru
                 set {_f} to potion effect of {_e} of tier {_t} for {_di}
                 add {_f} to potion effects of {_player}
     if {_message} is true:
-        send title mineroomsGetLevel({_player}, {_level}) to {_player}
-        send subtitle lang("minerooms.functions.travel.%{_level}%.name", {_player}) to {_player}
+        set {_ti} to mineroomsGetLevel({_player}, {_level})
+        replace all "-" with "." in {_ti}
+        send title {_ti} to {_player}
+        send subtitle lang("minerooms.functions.travel.%{_levelBis}%.name", {_player}) to {_player}
         set {_pvp} to "§2☻"
         if {_levelPvp} is "true":
             set {_pvp} to "§4☠"
@@ -881,15 +977,15 @@ function mineroomsTravel(player: player, level: integer=-1, message: boolean=tru
         add {_pvp} to {_args::*}
         send actionbar superLang("minerooms.functions.travel.actionBar", {_player}, {_args::*}) to {_player}
         wait 1.5 seconds
-        send title mineroomsGetLevel({_player}, {_level}) to {_player}
+        send title {_ti} to {_player}
         send subtitle lang("minerooms.functions.travel.secure.%{_levelSecure}%", {_player}) to {_player}
         send actionbar superLang("minerooms.functions.travel.actionBar", {_player}, {_args::*}) to {_player}
         wait 1.5 seconds
-        send title mineroomsGetLevel({_player}, {_level}) to {_player}
+        send title {_ti} to {_player}
         send subtitle lang("minerooms.functions.travel.stable.%{_levelStable}%", {_player}) to {_player}
         send actionbar superLang("minerooms.functions.travel.actionBar", {_player}, {_args::*}) to {_player}
         wait 1.5 seconds
-        send title mineroomsGetLevel({_player}, {_level}) to {_player}
+        send title {_ti} to {_player}
         send subtitle lang("minerooms.functions.travel.entity.%{_levelEntity}%", {_player}) to {_player}
         send actionbar superLang("minerooms.functions.travel.actionBar", {_player}, {_args::*}) to {_player}
 on chat:
@@ -1061,7 +1157,9 @@ on inventory click:
                     replace all "_" with " " in {_levelName}
                     if {_u} is {_levelName}:
                         close player's inventory
-                        set {_xx} to "%{_r}%" parsed as integer
+                        replace all "-" with "." in {_r}
+                        set {_xx} to "%{_r}%" parsed as number
+                        #broadcast "%{_levelName}% = %{_r}%"
                         mineroomsTravel(player, {_xx}, true)
                         #make console execute command "/mvtp %player's name% %{_levelNameBis}%"
     else if userData(player, "data.inv") is "manager.minerooms.ranks.list.main":
@@ -1075,7 +1173,10 @@ on inventory click:
         if "%{_t}%" contain "barrier":
             if {_u} contain "Back":
                 close player's inventory
-function mineroomsGetLevel(player: player, num: integer=-1, def: boolean=false) :: text:
+function mineroomsGetLevel(player: player, num: number=-1, def: boolean=false) :: text:
+    if "%{_num}%" contain ".":
+        set {_num} to "%{_num}%"
+        replace all "." with "-" in {_num}
     set {_r} to configLang(mineroomsData("levels.%{_num}%.name"), {_player})
     if {_def} is false:
         replace all "_" with " " in {_r}
@@ -1490,3 +1591,46 @@ on damage:
             if "%victim's gamemode%" is not "creative":
                 cancel event
                 stop
+on damage:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if "%type of attacker%" is not "player":
+        stop
+    if "%attacker's gamemode%" is not "creative":
+        set {_x} to mineroomsData("levels.%{_name}%.decoCombat")
+        if "%type of victim%" is "player":
+            if mineroomsData("levels.%{_name}%.decoCombat") is "false":
+                userData(attacker, "player.temp.decoCombat.active", "set", "true")
+                set {_d} to mineroomsData("decoCombat.time")
+                userData(attacker, "player.temp.decoCombat.cooldown", "set", mineroomsData("decoCombat.time"))
+                userData(victim, "player.temp.decoCombat.active", "set", "true")
+                userData(victim, "player.temp.decoCombat.attacker", "set", "%attacker's name%")
+                userData(victim, "player.temp.decoCombat.cooldown", "set", mineroomsData("decoCombat.time"))
+every 1 seconds:
+    loop all players:
+        set {_x} to loop-player
+        if userData({_x}, "player.temp.decoCombat.active") is "true":
+            set {_c} to userData({_x}, "player.temp.decoCombat.cooldown")
+            set {_c} to "%{_c}%" parsed as integer
+            if {_c} < 0:
+                userData({_x}, "player.temp.decoCombat.active", "set", "false")
+                stop
+            add "%{_c}%" to {_args::*}
+            send actionbar superLang("minerooms.decoCombat.active", {_x}, {_args::*}) to {_x}
+            remove 1 from {_c}
+            userData({_x}, "player.temp.decoCombat.cooldown", "set", "%{_c}%")
+
+on quit:
+    set {_a} to userData(player, "player.temp.decoCombat.active")
+    if "%{_a}%" is "true":
+        if "%player's gamemode%" is not "creative":
+            kill player
+on death:
+    if userData(victim, "player.temp.decoCombat.active") is "true":
+        # loop all players:
+        #     add victim's name to {_args::*}
+        #     add userData(victim, "player.temp.decoCombat.attaker") to {_args::*}
+        #     send formatted superLang("minerooms.decoCombat.death", loop-player, {_args::*}) to loop-player
+        userData(victim, "player.temp.decoCombat.active", "set", "false")
+        userData(attacker, "player.temp.decoCombat.active", "set", "false")
+        userData(victim, "player.temp.decoCombat.attacker", "set", "??")

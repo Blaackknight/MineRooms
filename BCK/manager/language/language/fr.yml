@@ -9,6 +9,9 @@ other:
 minerooms:
     firstJoin:
         pleaseSelectYourLanguage: "§6[§eMineRooms§6]§r §7Veuillez sélectionner votre langue §b§o(/language client <arg0>)"
+    decoCombat:
+        active: "§cVous êtes en combat (§l<arg0>s§r§c)"
+        death: "<arg0> vient d'être tuer par <arg1>"
     functions:
         travel:
             actionBar: "§eDanger: §d<arg0>§r §ePvP:§r <arg1>"
@@ -31,6 +34,8 @@ minerooms:
                 name: "§eLe Lobby"
             1: 
                 name: "§7Zone Habitable"
+            0-5: 
+                name: "§cChambres Rouges"
             2: 
                 name: "§6Rêves de Tuyaux"
             3: 
@@ -41,6 +46,12 @@ minerooms:
                 name: "§4Hôtel de la terreur"
             6:
                 name: "§8Couvre Feu"
+            7:
+                name: "§3Thalassophobie"
+            11:
+                name: "§7??"
+            37:
+                name: "§bPoolRooms"
             99: 
                 name: "??"
             666: 
@@ -65,12 +76,16 @@ minerooms:
             levels:
                 -1: "Backrooms"
                 0: "Niveau_0"
+                0-5: "Niveau_0-5"
                 1: "Niveau_1"
                 2: "Niveau_2"
                 3: "Niveau_3"
                 4: "Niveau_4"
                 5: "Niveau_5"
                 6: "Niveau_6"
+                7: "Niveau_7"
+                11: "Niveau_11"
+                37: "Niveau_37"
                 99: "Niveau_99"
                 666: "Niveau_666"
         ranks:
@@ -92,6 +107,12 @@ minerooms:
             added: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §aajouté §b§o(<arg0>)"
             removed: "§6[§eMineRooms§6]§r §eBloc avec un réapprovisionnement §cenlevé §b§o(<arg0>)"
             collected: "§eCaisse §aobtenue"
+        coordinate:
+            handIsEmpty: "§6[§eMineRooms§6]§r §cVotre main et vide !"
+            translationKeyMissing: "§6[§eMineRooms§6]§r §cCordonné manquant.."
+            success: "§6[§eMineRooms§6]§r §7Cordonné §aajouté §7!"
+            added: "§6[§eMineRooms§6]§r §eBloc avec cordonné §aajouté §a§o(<arg0>)"
+            removed: "§6[§eMineRooms§6]§r §eBloc avec cordonné §cenlevé §a§o(<arg0>)"
         travel:
             handIsEmpty: "§6[§eMineRooms§6]§r §cVotre main et vide !"
             unknownLevel: "§6[§eMineRooms§6]§r §cNiveau inconnu (<arg0>)"
@@ -135,6 +156,12 @@ minerooms:
             lore:
 
         6:
+            lore:
+
+        7:
+            lore:
+
+        11:
             lore:
                 
         99:
