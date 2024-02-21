@@ -372,6 +372,8 @@ function mineroomsLoad():
         set {_levelBreakArmorStand} to yaml value "%loop-value%.breakArmorStand" from "bck.server.minerooms.config"
         set {_levelBreakPainting} to yaml value "%loop-value%.breakPainting" from "bck.server.minerooms.config"
         set {_levelGrabFlowerPot} to yaml value "%loop-value%.grabFlowerPot" from "bck.server.minerooms.config"
+        set {_levelUseLever} to yaml value "%loop-value%.useLever" from "bck.server.minerooms.config"
+        set {_levelUseButton} to yaml value "%loop-value%.useButton" from "bck.server.minerooms.config"
         set {_levelEditSign} to yaml value "%loop-value%.editSign" from "bck.server.minerooms.config"
         set {_levelDropItem} to yaml value "%loop-value%.dropItem" from "bck.server.minerooms.config"
         set {_levelFallDamage} to yaml value "%loop-value%.fallDamage" from "bck.server.minerooms.config"
@@ -404,6 +406,10 @@ function mineroomsLoad():
             set {_levelBreakPainting} to "false"
         if "%{_levelGrabFlowerPot}%" is "<none>":
             set {_levelGrabFlowerPot} to "false"
+        if "%{_levelUseLever}%" is "<none>":
+            set {_levelUseLever} to "false"
+        if "%{_levelUseButton}%" is "<none>":
+            set {_levelUseButton} to "false"
         if "%{_levelEditSign}%" is "<none>":
             set {_levelEditSign} to "false"
         if "%{_levelDropItem}%" is "<none>":
@@ -428,6 +434,8 @@ function mineroomsLoad():
         mineroomsData("%loop-value%.breakArmorStand", "set", "%{_levelBreakArmorStand}%")
         mineroomsData("%loop-value%.breakPainting", "set", "%{_levelBreakPainting}%")
         mineroomsData("%loop-value%.grabFlowerPot", "set", "%{_levelBreakPainting}%")
+        mineroomsData("%loop-value%.useLever", "set", "%{_levelUseLever}%")
+        mineroomsData("%loop-value%.useButton", "set", "%{_levelUseButton}%")
         mineroomsData("%loop-value%.editSign", "set", "%{_levelEditSign}%")
         mineroomsData("%loop-value%.dropItem", "set", "%{_levelDropItem}%")
         mineroomsData("%loop-value%.fallDamage", "set", "%{_levelFallDamage}%")
@@ -595,7 +603,7 @@ function mineroomsManageGuiMain(player: player):
     userData({_player}, "data.inv", "set", "manager.minerooms.manage.main")
 on right click:
     set {_b} to event-block
-    if "%type of {_b}%" contain "chest":
+    if "%type of {_b}%" contain "chest" or "shulker box" or "barrel":
         if userDataBoolean(player, "player.vanish") is true:
             cancel event
             set {_s} to 3
@@ -603,9 +611,9 @@ on right click:
             if "%type of {_b}%" is "chest":
                 set {_s} to 6
                 set {_x} to 54
-            set {_gui} to genericGui(lang("minerooms.vanish.chestVisualizer.gui.title", player), {_s})
+            set {_gui} to genericGui(lang("minerooms.vanish.containerVisualizer.gui.title", player), {_s})
             open {_gui} for player
-            userData(player, "data.inv", "set", "manager.minerooms.vanish.chestVisualizer.main")
+            userData(player, "data.inv", "set", "manager.minerooms.vanish.containerVisualizer.main")
             set {_slot} to 0
             loop {_x} times:
                 set {_i} to slot {_slot} of {_b}
@@ -778,7 +786,7 @@ on inventory click:
             set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
             kill {_x}
             play sound "entity.player.death" with volume 1 with pitch 0 for player
-    else if userData(player, "data.inv") is "manager.minerooms.vanish.chestVisualizer.main":
+    else if userData(player, "data.inv") is "manager.minerooms.vanish.containerVisualizer.main":
         cancel event
         set {_i} to event-slot
 on inventory close:
@@ -1056,6 +1064,16 @@ on right click:
                     stop
         if "%type of {_b}%" contain "pot":
             if mineroomsData("levels.%{_name}%.grabFlowerPot") is "false":
+                if "%player's gamemode%" is not "creative":
+                    cancel event
+                    stop
+        if "%type of {_b}%" contain "lever":
+            if mineroomsData("levels.%{_name}%.useLever") is "false":
+                if "%player's gamemode%" is not "creative":
+                    cancel event
+                    stop
+        if "%type of {_b}%" contain "button":
+            if mineroomsData("levels.%{_name}%.useButton") is "false":
                 if "%player's gamemode%" is not "creative":
                     cancel event
                     stop

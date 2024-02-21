@@ -161,9 +161,9 @@ minerooms:
         stillVanished: "§6[§eMineRooms§6]§r §2<arg0> §aremains vanished !"
         join: "§e<arg0> joined the game"
         quit: "§e<arg0> left the game"
-        chestVisualizer:
+        containerVisualizer:
             gui:
-                title: "§6Chest §eVisualizer"
+                title: "§6Container §eVisualizer"
     quit:
         coordinate: "§6[§eMineRooms§6]§r §b❢ §7<arg0> §ejust disconnected §7§o(<arg1>)"
 
