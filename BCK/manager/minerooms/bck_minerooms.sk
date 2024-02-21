@@ -1,3 +1,5 @@
+options:
+    configFileLocation: "plugins/MineRooms/config.yml"
 on load:
     if {skripts::*} contains "bck_minerooms.sk":
         send "§6[§4BCK§6]§r Loading minerooms..." to console
@@ -300,7 +302,7 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
                 stop
             send formatted superLang("minerooms.command.rlc.deletingFile", player, {_args::*}) to player
-            delete script "plugins/MineRooms/config.yml"
+            delete script {@configFileLocation}
             wait 1 second
             send formatted superLang("minerooms.command.rlc.creatingFile", player, {_args::*}) to player
             wait 1 second
@@ -311,35 +313,35 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
 #                                      mineroomsLoad functions                                                                          #
 function mineroomsLoad():
     set {_data::*} to yaml list "data.minerooms.load.options" from "bck.manager.minerooms.config"
-    if file "plugins/MineRooms/config.yml" doesn't exist:
+    if file {@configFileLocation} doesn't exist:
         superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization..", "6.")
         create script "plugins/MineRooms/config.yml"
-        write "##                                                                                                                              " at line 1 to file "plugins/MineRooms/config.yml"
-        write "##                   ,,                                                                                 " at line 2 to file "plugins/MineRooms/config.yml"
-        write "## `7MMM.     ,MMF'  db                          `7MM""""Mq.                                             " at line 3 to file "plugins/MineRooms/config.yml"
-        write "##   MMMb    dPMM                                  MM   `MM.                                            " at line 4 to file "plugins/MineRooms/config.yml"
-        write "##   M YM   ,M MM  `7MM  `7MMpMMMb.  .gP""Ya        MM   ,M9  ,pW""Wq.   ,pW""Wq.`7MMpMMMb.pMMMb.  ,pP""Ybd " at line 5 to file "plugins/MineRooms/config.yml"
-        write "##   M  Mb  M' MM    MM    MM    MM ,M'   Yb       MMmmdM9  6W'   `Wb 6W'   `Wb MM    MM    MM  8I   `"" " at line 6 to file "plugins/MineRooms/config.yml"
-        write "##   M  YM.P'  MM    MM    MM    MM 8M""""""       MM  YM.  8M     M8 8M     M8 MM    MM    MM  `YMMMa. " at line 7 to file "plugins/MineRooms/config.yml"
-        write "##   M  `YM'   MM    MM    MM    MM YM.    ,       MM   `Mb.YA.   ,A9 YA.   ,A9 MM    MM    MM  L.   I8 " at line 8 to file "plugins/MineRooms/config.yml"
-        write "## .JML. `'  .JMML..JMML..JMML  JMML.`Mbmmd'     .JMML. .JMM.`Ybmd9'   `Ybmd9'.JMML  JMML  JMML.M9mmmP' " at line 9 to file "plugins/MineRooms/config.yml"
-        write "" at line 10 to file "plugins/MineRooms/config.yml"
-        write "##   ___           ___ _            _    _          _       _     _   " at line 11 to file "plugins/MineRooms/config.yml"
-        write "##  / __\_   _    / __\ | __ _  ___| | _| | ___ __ (_) __ _| |__ | |_ " at line 12 to file "plugins/MineRooms/config.yml"
-        write "## /__\// | | |  /__\// |/ _` |/ __| |/ / |/ / '_ \| |/ _` | '_ \| __|" at line 13 to file "plugins/MineRooms/config.yml"
-        write "##/ \/  \ |_| | / \/  \ | (_| | (__|   <|   <| | | | | (_| | | | | |_ " at line 14 to file "plugins/MineRooms/config.yml"
-        write "##\_____/\__, | \_____/_|\__,_|\___|_|\_\_|\_\_| |_|_|\__, |_| |_|\__|" at line 15 to file "plugins/MineRooms/config.yml"
-        write "##       |___/                                        |___/           " at line 16 to file "plugins/MineRooms/config.yml"
-        write "" at line 17 to file "plugins/MineRooms/config.yml"
+        write "##                                                                                                                              " at line 1 to file {@configFileLocation}
+        write "##                   ,,                                                                                 " at line 2 to file {@configFileLocation}
+        write "## `7MMM.     ,MMF'  db                          `7MM""""Mq.                                             " at line 3 to file {@configFileLocation}
+        write "##   MMMb    dPMM                                  MM   `MM.                                            " at line 4 to file {@configFileLocation}
+        write "##   M YM   ,M MM  `7MM  `7MMpMMMb.  .gP""Ya        MM   ,M9  ,pW""Wq.   ,pW""Wq.`7MMpMMMb.pMMMb.  ,pP""Ybd " at line 5 to file {@configFileLocation}
+        write "##   M  Mb  M' MM    MM    MM    MM ,M'   Yb       MMmmdM9  6W'   `Wb 6W'   `Wb MM    MM    MM  8I   `"" " at line 6 to file {@configFileLocation}
+        write "##   M  YM.P'  MM    MM    MM    MM 8M""""""       MM  YM.  8M     M8 8M     M8 MM    MM    MM  `YMMMa. " at line 7 to file {@configFileLocation}
+        write "##   M  `YM'   MM    MM    MM    MM YM.    ,       MM   `Mb.YA.   ,A9 YA.   ,A9 MM    MM    MM  L.   I8 " at line 8 to file {@configFileLocation}
+        write "## .JML. `'  .JMML..JMML..JMML  JMML.`Mbmmd'     .JMML. .JMM.`Ybmd9'   `Ybmd9'.JMML  JMML  JMML.M9mmmP' " at line 9 to file {@configFileLocation}
+        write "" at line 10 to file {@configFileLocation}
+        write "##   ___           ___ _            _    _          _       _     _   " at line 11 to file {@configFileLocation}
+        write "##  / __\_   _    / __\ | __ _  ___| | _| | ___ __ (_) __ _| |__ | |_ " at line 12 to file {@configFileLocation}
+        write "## /__\// | | |  /__\// |/ _` |/ __| |/ / |/ / '_ \| |/ _` | '_ \| __|" at line 13 to file {@configFileLocation}
+        write "##/ \/  \ |_| | / \/  \ | (_| | (__|   <|   <| | | | | (_| | | | | |_ " at line 14 to file {@configFileLocation}
+        write "##\_____/\__, | \_____/_|\__,_|\___|_|\_\_|\_\_| |_|_|\__, |_| |_|\__|" at line 15 to file {@configFileLocation}
+        write "##       |___/                                        |___/           " at line 16 to file {@configFileLocation}
+        write "" at line 17 to file {@configFileLocation}
         set {_x} to 18
         set {_c} to listCounter({_data::*})
         loop {_data::*}:
-            write loop-value at line {_x} to file "plugins/MineRooms/config.yml"
+            write loop-value at line {_x} to file {@configFileLocation}
             add 1 to {_x}
         wait 3 ticks
         superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization §nComplete§r§e !", "6.4")
     wait 3 ticks
-    load yaml "plugins/MineRooms/config.yml" as "bck.server.minerooms.config"
+    load yaml {@configFileLocation} as "bck.server.minerooms.config"
     superLog("§6[§4BCK§6/§eMineRooms§6]§r §aLoaded file succeffully !", "6.4")
     wait 2 ticks
 
@@ -374,6 +376,7 @@ function mineroomsLoad():
         set {_levelDropItem} to yaml value "%loop-value%.dropItem" from "bck.server.minerooms.config"
         set {_levelFallDamage} to yaml value "%loop-value%.fallDamage" from "bck.server.minerooms.config"
         set {_levelDecoCombat} to yaml value "%loop-value%.decoCombat" from "bck.server.minerooms.config"
+        set {_levelHealth} to yaml value "%loop-value%.health" from "bck.server.minerooms.config"
         set {_levelEffectType} to yaml value "%loop-value%.effect.type" from "bck.server.minerooms.config"
         set {_levelEffectEffects::*} to yaml list "%loop-value%.effect.effects" from "bck.server.minerooms.config"
         set {_levelMobSpawnAlloy::*} to yaml list "%loop-value%.mobSpawn.alloy" from "bck.server.minerooms.config"
@@ -409,6 +412,8 @@ function mineroomsLoad():
             set {_levelFallDamage} to "false"
         if "%{_levelDecoCombat}%" is "<none>":
             set {_levelDecoCombat} to "false"
+        if "%{_levelHealth}%" is "<none>":
+            set {_levelHealth} to 20
         if "%{_levelEffectType}%" is "<none>":
             set {_levelEffectType} to "1"
         mineroomsData("%loop-value%.name", "set", "%{_levelName}%")
@@ -427,6 +432,7 @@ function mineroomsLoad():
         mineroomsData("%loop-value%.dropItem", "set", "%{_levelDropItem}%")
         mineroomsData("%loop-value%.fallDamage", "set", "%{_levelFallDamage}%")
         mineroomsData("%loop-value%.decoCombat", "set", "%{_levelDecoCombat}%")
+        mineroomsData("%loop-value%.health", "set", "%{_levelHealth}%")
         mineroomsData("%loop-value%.effect.type", "set", "%{_levelEffectType}%")
         set yaml list "%loop-value%.effect.effects" from "bck.manager.minerooms.data" to  {_levelEffectEffects::*}
         set yaml list "%loop-value%.mobSpawn.allow" from "bck.manager.minerooms.data" to  {_levelMobSpawnAlloy::*}
@@ -1223,12 +1229,20 @@ function mineroomsTravel(player: player, level: number=-1, message: boolean=true
     set {_levelStable} to mineroomsData("levels.%{_levelBis}%.stable")
     set {_levelEntity} to mineroomsData("levels.%{_levelBis}%.entity")
     set {_levelPvp} to mineroomsData("levels.%{_levelBis}%.pvp")
+    set {_levelHealth} to mineroomsData("levels.%{_levelBis}%.health")
+    set {_levelHealth} to "%{_levelHealth}%" parsed as number
+    if {_levelHealth} is not set:
+        set {_levelHealth} to 10
     set {_levelEffectType} to mineroomsData("levels.%{_levelBis}%.effect.type")
     set {_levelEffectEffects::*} to yaml list "levels.%{_levelBis}%.effect.effects" from "bck.manager.minerooms.data"
     set {_levelNameBis} to configLang({_levelName}, {_player}, "language", true)
     make console execute command "/mvtp %{_player}'s name% %{_levelNameBis}%"
+    set {_player}'s maximum health to 10
+    heal {_player}
     wait 1 tick
     clear all the potion effects of {_player}
+    set maximum health of {_player} to {_levelHealth}
+    heal {_player}
     if "%{_levelEffectType}%" is "1":
         loop {_levelEffectEffects::*}:
             set {_v} to loop-value
