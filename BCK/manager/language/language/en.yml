@@ -48,10 +48,16 @@ minerooms:
                 name: "§8Lights Out"
             7:
                 name: "§3Thalassophobia"
+            8:
+                name: "§8Caves System"
             11:
-                name: "§7??"
+                name: "§6Endless city"
+            19:
+                name: "??"
             37:
                 name: "§bPoolRooms"
+            70:
+                name: "§eWarehouse"
             99: 
                 name: "??"
             666: 
@@ -76,16 +82,19 @@ minerooms:
             levels:
                 -1: "Backrooms"
                 0: "Level_0"
-                0-5: "Niveau_0-5"
+                0-5: "Level_0-5"
                 1: "Level_1"
                 2: "Level_2"
                 3: "Level_3"
                 4: "Level_4"
                 5: "Level_5"
-                6: "Niveau_6"
-                7: "Niveau_7"
-                11: "Niveau_11"
-                37: "Niveau_37"
+                6: "Level_6"
+                7: "Level_7"
+                8: "Level_8"
+                11: "Level_11"
+                19: "Level_19"
+                37: "Level_37"
+                70: "Level_70"
                 99: "Level_99"
                 666: "Level_666"
         ranks:
@@ -121,6 +130,42 @@ minerooms:
             removed: "§6[§eMineRooms§6]§r §eBlock with a travel §cremoved §b§o(<arg0>)"
         wiki:
             noEnoughPlace: "§6[§eMineRooms§6]§r §cYour inventory is full !"
+        chat:
+            missingOption: "§6[§eMineRooms§6]§r §cOption missing.."
+            unknownOption: "§6[§eMineRooms§6]§r §cUnknown chat (<arg0>)"
+            success: "§6[§eMineRooms§6]§r §eChat §adefines §7§o(<arg0>)"
+            send: "§6[§eMineRooms§6]§r §eMessage §asend §e!"
+        rlc:
+            deletingFile: "§6[§eMineRooms§6]§r §cDeleting §rthe §bconfiguration file§r.."
+            creatingFile: "§6[§eMineRooms§6]§r §aCreating §rthe §bconfiguration file§r..."
+    freeze:
+        playerFreeze: "§1You have been freezed :("
+        youFreeze: "§6[§eMineRooms§6]§r §eYou just froze §7<arg0>"
+        playerUnFreeze: "§bYou are §afree §b:)"
+        youUnFreeze: "§6[§eMineRooms§6]§r §eYou just thawed §7<arg0>"
+    manage:
+        gui:
+            title: "§aManage"
+        view:
+            tp: "§dTeleport"
+            inv: "§eOpen his inventory"
+            ender: "§3Opening his ender chest"
+            alert: "§cAlert him"
+            freeze: "§bFrozen"
+            clear: "§6Clear his inventory"
+            kill: "§4Kill him"
+            actionbar: "§cBe careful my friend.... §eI am looking at you §4☠"
+    vanish:
+        nowVanished: "§6[§eMineRooms§6]§r §2<arg0> §ais now vanished !"
+        nowVisible: "§6[§eMineRooms§6]§r §2<arg0> §ais now visible !"
+        stillVanished: "§6[§eMineRooms§6]§r §2<arg0> §aremains vanished !"
+        join: "§e<arg0> joined the game"
+        quit: "§e<arg0> left the game"
+        chestVisualizer:
+            gui:
+                title: "§6Chest §eVisualizer"
+    quit:
+        coordinate: "§6[§eMineRooms§6]§r §b❢ §7<arg0> §ejust disconnected §7§o(<arg1>)"
     ranks:
         default:
             name: "§d§lDefault"
@@ -128,6 +173,10 @@ minerooms:
             name: "§7§lWanderer"
         meg_member:
             name: "§1§lMember of M.E.G"
+        builder:
+            name: "§a§lBuilder"
+        dev:
+            name: "§5§lDeveloper"
         moderator:
             name: "§2§lModerator"
         administrator:
@@ -141,6 +190,13 @@ minerooms:
                 
         1:
             lore:
+                alpha_base:
+                    name: "??"
+                    author: "??"
+                    pages:
+                        - "\n\n\n\n\n\n§1§l ⚞ MEG - α Base ⚟"
+                        - "§lThe blue bird beckons and soothes you. You\\'ll feel §7§ksafe here§r§l. It\\'s in full flight, spreading its wings in the darkness. Migrating towards his destiny, it\\'s §2§l06§0§l:§d§l09§0§lpm.\n\n\n§5§l2010 §0§lor §6§l2012 §0§l?"
+                        - "§lLook to the §6§lright §0§linstead. You\\'ll see an entity hunting its prey.\n\n\n\n\n\n\n\n\n\nThe end?"
                 
         2:
             lore:

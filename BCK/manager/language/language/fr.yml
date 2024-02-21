@@ -48,10 +48,16 @@ minerooms:
                 name: "§8Couvre Feu"
             7:
                 name: "§3Thalassophobie"
+            8:
+                name: "§8Réseau de cavernes"
             11:
-                name: "§7??"
+                name: "§6Ville sans fin"
+            19:
+                name: "??"
             37:
                 name: "§bPoolRooms"
+            70:
+                name: "§eEntrepot"
             99: 
                 name: "??"
             666: 
@@ -84,8 +90,11 @@ minerooms:
                 5: "Niveau_5"
                 6: "Niveau_6"
                 7: "Niveau_7"
+                8: "Niveau_8"
                 11: "Niveau_11"
+                19: "Niveau_19"
                 37: "Niveau_37"
+                70: "Niveau_70"
                 99: "Niveau_99"
                 666: "Niveau_666"
         ranks:
@@ -121,6 +130,42 @@ minerooms:
             removed: "§6[§eMineRooms§6]§r §eBloc avec un Voyage §cenlevé §b§o(<arg0>)"
         wiki:
             noEnoughPlace: "§6[§eMineRooms§6]§r §cTon inventaire et pleins !"
+        chat:
+            missingOption: "§6[§eMineRooms§6]§r §cOption manquant.."
+            unknownOption: "§6[§eMineRooms§6]§r §cTchat inconnu (<arg0>)"
+            success: "§6[§eMineRooms§6]§r §eTchat §adéfinit §7§o(<arg0>)"
+            send: §6[§eMineRooms§6]§r §eMessage §aenvoyer §e!"
+        rlc:
+            deletingFile: "§6[§eMineRooms§6]§r §cSuppréssion §rdu §bfichier de configuration§r.."
+            creatingFile: "§6[§eMineRooms§6]§r §aCréation §rdu §bfichier de configuration§r..."
+    freeze:
+        playerFreeze: "§1You have been freezed :("
+        youFreeze: "§6[§eMineRooms§6]§r §eYou just froze §7<arg0>"
+        playerUnFreeze: "§bYou are §afree §b:)"
+        youUnFreeze: "§6[§eMineRooms§6]§r §eYou just thawed §7<arg0>"
+    manage:
+        gui:
+            title: "§aManage"
+        view:
+            tp: "§dTeleport"
+            inv: "§eOpen his inventory"
+            ender: "§3Opening his ender chest"
+            alert: "§cAlert him"
+            freeze: "§bFrozen"
+            clear: "§6Clear his inventory"
+            kill: "§4Kill him"
+            actionbar: "§cBe careful my friend.... §eI am looking at you §4☠"
+    vanish:
+        nowVanished: "§6[§eMineRooms§6]§r §2<arg0> §ais now vanished !"
+        nowVisible: "§6[§eMineRooms§6]§r §2<arg0> §ais now visible !"
+        stillVanished: "§6[§eMineRooms§6]§r §2<arg0> §aremains vanished !"
+        join: "§e<arg0> joined the game"
+        quit: "§e<arg0> left the game"
+        chestVisualizer:
+            gui:
+                title: "§6Chest §eVisualizer"
+    quit:
+        coordinate: "§6[§eMineRooms§6]§r §b❢ §7<arg0> §ejust disconnected §7§o(<arg1>)"
 
     ranks:
         default:
@@ -129,6 +174,10 @@ minerooms:
             name: "§7§lExplorateur"
         meg_member:
             name: "§1§lMembre du M.E.G"
+        builder:
+            name: "§a§lBuilder"
+        dev:
+            name: "§5§lDéveloppeur"
         moderator:
             name: "§2§lModérateur"
         administrator:
@@ -142,6 +191,13 @@ minerooms:
                 
         1:
             lore:
+                alpha_base:
+                    name: "??"
+                    author: "??"
+                    pages:
+                        - "\n\n\n\n\n\n§1§l ⚞ MEG - Base α ⚟"
+                        - "§lL\\'oiseau bleu vous fait signe, vous apaise. Vous vous sentirez en §7§ksécurité ici§r§l. Il est en plein vol, déployant ses ailes dans l\\'obscurité. Migrant vers sa destinée, il est §2§l18§0§lh§d§l09§0§l.\n\n§5§l2010 §0§lou §6§l2012 §0§l?"
+                        - "§lRegardez plutôt vers la §6§ldroite§0§l. Vous apercevez une entité chassant sa proie.\n\n\n\n\n\n\n\n\nFin ?"
                 
         2:
             lore:

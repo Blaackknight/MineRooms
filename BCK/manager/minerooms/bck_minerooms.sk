@@ -7,10 +7,17 @@ on load:
         load yaml "plugins/Skript/scripts/BCK/manager/minerooms/data.yml" as "bck.manager.minerooms.data"
         load yaml "plugins/Skript/scripts/BCK/manager/minerooms/bdd.yml" as "bck.manager.minerooms.bdd"
         mineroomsLoad()
+        add "default" to {mr.chats::*}
+        add "all" to {mr.chats::*}
+        add "meg" to {mr.chats::*}
+        add "staff" to {mr.chats::*}
+        add mineroomsGetLevels(true) to {mr.chats::*}
     else:
         broadcast "§6[§4BCK§6/§eMineRooms§6]§r Script loading cancel It require (bck_minerooms.sk)"
         unload script file "bck_minerooms.sk"
     stop
+on unload:
+    clear {mr.chats::*}
 #                                      txtGiver command                                                                          #
 command /txtGiver [<text>]:
     trigger:
@@ -187,7 +194,7 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
             else:
                 if mineroomsGetLevels(true) doesn't contain arg-2:
                     add arg-2 to {_args::*}
-                    send formatted superLang("minerooms.command.travel.unknownLevel", player, {_args::*}) to players
+                    send formatted superLang("minerooms.command.travel.unknownLevel", player, {_args::*}) to player
                     stop
                 set {_res} to arg-2
             set line 2 of lore of player's tool to "§b<travel:%{_res}%>"
@@ -228,6 +235,76 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                     set slot {_ss} of player's inventory to air
                     exit loop
                 add 1 to {_ss}
+        else if arg-1 is "chat":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            if arg-2 is not set:
+                send formatted lang("minerooms.command.chat.missingOption", player) to player
+                stop
+            if "%{mr.chats::*}%" doesn't contain arg-2:
+                add arg-2 to {_args::*}
+                send formatted superLang("minerooms.command.chat.unknownOption", player, {_args::*}) to player
+                stop
+            else:
+                userData(player, "player.chat", "set", arg-2)
+                add arg-2 to {_args::*}
+                send formatted superLang("minerooms.command.chat.success", player, {_args::*}) to player
+        else if arg-1 is "manage":
+            set {_v} to arg-2 parsed as offlineplayer
+            if all players doesn't contain {_v}:
+                send formatted commandError(command, "%arg-1% %arg-2%", player) to player
+            else:
+                userData(player, "data.temp.manage", "set", "%{_v}%")
+                mineroomsManageGuiMain(player)
+        else if arg-1 is "vanish":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            mineroomsVanish(player)
+        else if arg-1 is "invsee":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            set {_v} to arg-2 parsed as offlineplayer
+            if all players doesn't contain {_v}:
+                send formatted commandError(command, "%arg-1% %arg-2%", player) to player
+            else:
+                mineroomsInvSee(player, {_v}, true)
+        else if arg-1 is "endersee":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            set {_v} to arg-2 parsed as offlineplayer
+            if all players doesn't contain {_v}:
+                send formatted commandError(command, "%arg-1% %arg-2%", player) to player
+            else:
+                mineroomsEnderSee(player, {_v}, true)
+        else if arg-1 is "freeze":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            set {_v} to arg-2 parsed as offlineplayer
+            if all players doesn't contain {_v}:
+                send formatted commandError(command, "%arg-1% %arg-2%", player) to player
+            else:
+                mineroomsFreeze({_v}, player)
+        else if arg-1 is "rlc":
+            if hasPermission(player, "server.owner") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            send formatted superLang("minerooms.command.rlc.deletingFile", player, {_args::*}) to player
+            delete script "plugins/MineRooms/config.yml"
+            wait 1 second
+            send formatted superLang("minerooms.command.rlc.creatingFile", player, {_args::*}) to player
+            wait 1 second
+            mineroomsLoad()
         else:
             add arg-1 to {_args::*}
             send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
@@ -267,6 +344,9 @@ function mineroomsLoad():
     wait 2 ticks
 
     mineroomsData("chat.message", "set", mineroomsServerConfig("chat.message"))
+    mineroomsData("chat.levelMessage", "set", mineroomsServerConfig("chat.levelMessage"))
+    mineroomsData("chat.megMessage", "set", mineroomsServerConfig("chat.megMessage"))
+    mineroomsData("chat.staffMessage", "set", mineroomsServerConfig("chat.staffMessage"))
 
     mineroomsData("decoCombat.time", "set", mineroomsServerConfig("decoCombat.time"))
 
@@ -429,7 +509,14 @@ on tab complete of "/minerooms" or "/mr":
         add "restock" to {_data::*}
         add "coordinate" to {_data::*}
         add "travel" to {_data::*}
+        add "manage" to {_data::*}
+        add "vanish" to {_data::*}
+        add "invsee" to {_data::*}
+        add "endersee" to {_data::*}
+        add "freeze" to {_data::*}
+        add "rlc" to {_data::*}
     add "wiki" to {_data::*}
+    add "chat" to {_data::*}
     set tab completions for position 1 to {_data::*}
     if tab arg-1 is "rank":
         if hasPermission(player, "op") is true:
@@ -463,6 +550,151 @@ on tab complete of "/minerooms" or "/mr":
     else if tab arg-1 is "travel":
         if hasPermission(player, "op") is true:
             set tab completions for position 2 to mineroomsGetLevels(true)
+    else if tab arg-1 is "chat":
+        if hasPermission(player, "op") is true:
+            set tab completions for position 2 to {mr.chats::*}
+        else if mineroomsGetRank(player) is "meg_member":
+            set tab completions for position 2 to "default" and "meg"
+    else if tab arg-1 is "manage":
+        set tab completions for position 2 to all players
+    else if tab arg-1 is "invsee":
+        set tab completions for position 2 to all players
+    else if tab arg-1 is "endersee":
+        set tab completions for position 2 to all players
+    else if tab arg-1 is "freeze":
+        set tab completions for position 2 to all players
+function mineroomsManageGuiMain(player: player):
+    set {_x} to userData({_player}, "data.temp.manage")
+    set {_x} to {_x} parsed as offline player
+    loadUserData({_x})
+    set {_gui} to genericGui("§7%{_x}'s name%", 5, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.manage.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_tp} to ender pearl named lang("minerooms.manage.view.tp", {_player})
+    set {_inv} to chest named lang("minerooms.manage.view.inv", {_player})
+    set {_ender} to ender chest named lang("minerooms.manage.view.ender", {_player})
+    set {_alert} to stick named lang("minerooms.manage.view.alert", {_player})
+    set {_freeze} to blue ice named lang("minerooms.manage.view.freeze", {_player})
+    set {_clear} to lava bucket named lang("minerooms.manage.view.clear", {_player})
+    set {_kill} to netherite sword named lang("minerooms.manage.view.kill", {_player})
+    set slot 19 of {_gui} to {_tp}
+    set slot 20 of {_gui} to {_inv}
+    set slot 21 of {_gui} to {_ender}
+    set slot 22 of {_gui} to {_alert}
+    set slot 23 of {_gui} to {_freeze}
+    set slot 24 of {_gui} to {_clear}
+    set slot 25 of {_gui} to {_kill}
+    userData({_player}, "data.inv", "set", "manager.minerooms.manage.main")
+on right click:
+    set {_b} to event-block
+    if "%type of {_b}%" contain "chest":
+        if userDataBoolean(player, "player.vanish") is true:
+            cancel event
+            set {_s} to 3
+            set {_x} to 27
+            if "%type of {_b}%" is "chest":
+                set {_s} to 6
+                set {_x} to 54
+            set {_gui} to genericGui(lang("minerooms.vanish.chestVisualizer.gui.title", player), {_s})
+            open {_gui} for player
+            userData(player, "data.inv", "set", "manager.minerooms.vanish.chestVisualizer.main")
+            set {_slot} to 0
+            loop {_x} times:
+                set {_i} to slot {_slot} of {_b}
+                set slot {_slot} of {_gui} to {_i}
+                add 1 to {_slot}
+function mineroomsFreeze(target: player, player: player):
+    if userData({_target}, "player.freeze") is "true":
+        add {_target}'s name to {_args::*}
+        send formatted superLang("minerooms.freeze.youUnFreeze", {_player}, {_args::*}) to {_player}
+        send formatted lang("minerooms.freeze.playerUnFreeze", {_target}) to {_target}
+        userData({_target}, "player.freeze", "set", "false")
+    else:
+        add {_target}'s name to {_args::*}
+        send formatted superLang("minerooms.freeze.youFreeze", {_player}, {_args::*}) to {_player}
+        send formatted lang("minerooms.freeze.playerFreeze", {_target}) to {_target}
+        userData({_target}, "player.freeze", "set", "true")
+function mineroomsInvSee(player: player, target: player, cmd: boolean=false):
+    open {_target}'s inventory to {_player}
+    if {_cmd} is false:
+        userData({_player}, "data.inv", "set", "manager.minerooms.manage.invsee.main")
+function mineroomsEnderSee(player: player, target: player, cmd: boolean=false):
+    open {_target}'s ender chest to {_player}
+    if {_cmd} is false:
+        userData({_player}, "data.inv", "set", "manager.minerooms.manage.endersee.main")
+function mineroomsGetLanguage(player: player, split: boolean= true) :: text:
+    set {_x} to language of {_player}
+    if {_split} is true:
+        set {_data::*} to {_x} split by "_"
+        set {_x} to {_data::1}
+    return {_x}
+function mineroomsVanish(player: player):
+    if userData({_player}, "player.vanish") is "true":
+        loop all players:
+            add {_player}'s name to {_args::*}
+            if {_player} is not loop-player:
+                if loop-player have permission "*":
+                    send formatted superLang("minerooms.vanish.nowVisible", loop-player, {_args::*}) to loop-player
+                else:
+                    add loop-player to {_g::*}
+            send formatted superLang("minerooms.vanish.join", loop-player, {_args::*}, "language", mineroomsGetLanguage(loop-player)) to loop-player
+        reveal {_player} from all players
+        userData({_player}, "player.vanish", "set", "false")
+    else:
+        loop all players:
+            add {_player}'s name to {_args::*}
+            if {_player} is not loop-player:
+                if loop-player have permission "*":
+                    send formatted superLang("minerooms.vanish.nowVanished", loop-player, {_args::*}) to loop-player
+                else:
+                    add loop-player to {_g::*}
+            set {_x} to mineroomsGetLanguage(loop-player)
+            send formatted superLang("minerooms.vanish.quit", loop-player, {_args::*}, "language", {_x}) to loop-player
+        hide {_player} from {_g::*}
+        userData({_player}, "player.vanish", "set", "true")
+on join:
+    ##send "§6[§aAntiExploitCore§6]§r %player's name% view distance (%client view distance of player%)" to console
+    if userData(player, "player.vanish") is "true":
+        set join message to ""
+        loop all players:
+            add player's name to {_args::*}
+            if {_player} is not loop-player:
+                if loop-player have permission "*":
+                    send formatted superLang("minerooms.vanish.stillVanished", loop-player, {_args::*}) to loop-player
+                    clear {_args::*}
+                else:
+                    add loop-player to {_g::*}
+            reveal the loop-player from all players
+            hide the loop-player from {_g::*}
+    else:
+        set join message to ""
+        add player's name to {_args::*}
+        loop all players:
+            send formatted superLang("minerooms.vanish.join", loop-player, {_args::*}, "language", mineroomsGetLanguage(loop-player)) to loop-player
+        send superLang("minerooms.vanish.join", player, {_args::*}, "language", "en") to console
+on quit:
+    if userData(player, "player.vanish") is "true":
+        set quit message to ""
+    else:
+        set quit message to ""
+        add player's name to {_args::*}
+        loop all players:
+            send formatted superLang("minerooms.vanish.quit", loop-player, {_args::*}, "language", mineroomsGetLanguage(loop-player)) to loop-player
+        send superLang("minerooms.vanish.quit", player, {_args::*}, "language", "en") to console
+    add player's name to {_args::*}
+    add "%player's location%" to {_args::*}
+    send superLang("minerooms.quit.coordinate", player, {_args::*}, "language", "en") to console
+on pickup:
+    if userData(player, "player.vanish") is "true":
+        cancel event
+on any move:
+    if userData(player, "player.freeze") is "true":
+        cancel event
+on damage:
+    if userData(victim, "player.vanish") is "true":
+        cancel event
 on join:
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
@@ -470,6 +702,8 @@ on join:
         mineroomsSetRank(player, "wanderer", true)
     if userData(player, "data.language") is "<none>":
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
+    if userData(player, "player.chat") is "<none>":
+        userData(player, "player.chat", "set", "default")
 function mineroomsGetRestocks() :: objects:
     loop yaml node keys "restock" from "bck.manager.minerooms.data":
         add loop-node to {_dataList::*}
@@ -490,6 +724,66 @@ function mineroomsGetLevels(o: boolean=false) :: objects:
         else:
             add {_v} to {_args::*}
     return {_args::*}
+on inventory click:
+    if userData(player, "data.inv") is "false":
+        stop
+    if userData(player, "data.inv") is "manager.minerooms.manage.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                close player's inventory
+        else if "%{_t}%" is "ender pearl":
+            set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
+            teleport player to {_x}
+            play sound "entity.enderman.teleport" with volume 1 for player
+            wait 10 ticks
+            mineroomsManageGuiMain(player)
+        else if "%{_t}%" is "chest":
+            set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
+            play sound "block.chest.open" with volume 1 for player
+            mineroomsInvSee(player, {_x})
+        else if "%{_t}%" is "ender chest":
+            set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
+            play sound "block.ender_chest.open" with volume 1 for player
+            mineroomsEnderSee(player, {_x})
+        else if "%{_t}%" is "stick":
+            set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
+            loop 10 times:
+                send actionbar superLang("minerooms.topLuck.view.actionbar", {_x}, {_args::*}) to {_x}
+                play sound "entity.firework_rocket.large_blast_far" with volume 1 with pitch 2 at {_x}
+                wait 5 ticks
+                play sound "entity.firework_rocket.large_blast_far" with volume 1 with pitch 0 at {_x}
+                wait 1 seconds
+        else if "%{_t}%" is "blue ice block":
+            set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
+            mineroomsFreeze({_x}, player)
+            play sound "block.amethyst_block.resonate" with volume 1 with pitch 0 for player
+        else if "%{_t}%" is "lava bucket":
+            set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
+            clear {_x}'s inventory
+            play sound "block.lava.extinguish" with volume 1 with pitch 0.9 for player
+        else if "%{_t}%" is "netherite sword":
+            set {_x} to userData(player, "data.temp.manage") parsed as offlineplayer
+            kill {_x}
+            play sound "entity.player.death" with volume 1 with pitch 0 for player
+    else if userData(player, "data.inv") is "manager.minerooms.vanish.chestVisualizer.main":
+        cancel event
+        set {_i} to event-slot
+on inventory close:
+    if userData(player, "data.inv") is "manager.minerooms.manage.invsee.main":
+        play sound "block.chest.close" with volume 1 for player
+        wait 1 ticks
+        mineroomsManageGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.manage.endersee.main":
+        play sound "block.ender_chest.close" with volume 1 for player
+        wait 1 ticks
+        mineroomsManageGuiMain(player)
 command /bck_dev [<player>]:
     trigger:
         op arg-1
@@ -531,6 +825,10 @@ on first join:
         clear {_args::*}
     make console execute command "/team join wanderer %player's name%"
     wait 5 seconds
+    set player's helmet to golden helmet
+    set player's chestplate to golden chestplate
+    set player's leggings to golden leggings
+    set player's boots to golden boots
     wait 1 seconds
     mineroomsTravel(player, 0, true)
 on place:
@@ -909,10 +1207,10 @@ every 10 ticks:
                             set {_y} to "%{_y}%" parsed as number
                             set {_z} to {_xs::7}
                             set {_z} to "%{_z}%" parsed as number
-                            set {_ww} to world({_cw})
-                            set {_ff} to location({_x},{_y},{_z},{_ww})
+                            set {_ww} to world("%{_cw}%")
+                            set {_ff} to location({_x},{_y},{_z}, {_ww})
                             teleport loop-player to {_ff}
-                            send "%{_ff}%" to loop-player
+                            #broadcast "%{_ff}% / %{_ww}% / %{_cw}%"
                             play sound "entity.enderman.teleport" with volume 1 with pitch 0.8 for loop-player
 
 
@@ -990,16 +1288,72 @@ function mineroomsTravel(player: player, level: number=-1, message: boolean=true
         send actionbar superLang("minerooms.functions.travel.actionBar", {_player}, {_args::*}) to {_player}
 on chat:
     cancel event
+    set {_xc} to false
     loop all players:
         set {_x} to loop-player
-        if {_x}'s world is player's world:
+        if userData(player, "player.chat") is "default":
+            if {_x}'s world is player's world:
+                set {_mb} to mineroomsData("chat.message")
+                set {_rank} to userData(player, "player.rank")
+                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+                if "%{_rankName}%" is "<none>":
+                    set {_rankName} to ""
+                
+                
+                if {_rankName} contain "§l":
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::2}%"
+                    set {_rankColor} to "%{_rankColor}%§l"
+                else:
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::1}%"
+                set {_mb} to "%{_mb}%"
+                set {_c} to 0
+                add {_rankColor} to {_args::*}
+                add {_rankName} to {_args::*}
+                add player's name to {_args::*}
+                add message to {_args::*}
+                loop {_args::*}:
+                    set {_v} to loop-value-2
+                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                    add 1 to {_c}
+                send formatted {_mb} to loop-player
+                send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                clear {_args::*}
+        else if userData(player, "player.chat") is "staff":
+            if hasPermission(player, "op"):
+                set {_mb} to mineroomsData("chat.staffMessage")
+                set {_rank} to userData(player, "player.rank")
+                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+                if "%{_rankName}%" is "<none>":
+                    set {_rankName} to ""
+                if {_rankName} contain "§l":
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::2}%"
+                    set {_rankColor} to "%{_rankColor}%§l"
+                else:
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::1}%"
+                set {_mb} to "%{_mb}%"
+                set {_c} to 0
+                add "🔒" to {_args::*}
+                add {_rankColor} to {_args::*}
+                add {_rankName} to {_args::*}
+                add player's name to {_args::*}
+                add message to {_args::*}
+                loop {_args::*}:
+                    set {_v} to loop-value-2
+                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                    add 1 to {_c}
+                send formatted {_mb} to loop-player
+                send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                clear {_args::*}
+        else if userData(player, "player.chat") is "all":
             set {_mb} to mineroomsData("chat.message")
             set {_rank} to userData(player, "player.rank")
             set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
             if "%{_rankName}%" is "<none>":
                 set {_rankName} to ""
-            
-            
             if {_rankName} contain "§l":
                 set {_cc::*} to {_rankName} split by "§"
                 set {_rankColor} to "§%{_cc::2}%"
@@ -1020,6 +1374,91 @@ on chat:
             send formatted {_mb} to loop-player
             send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
             clear {_args::*}
+        else if userData(player, "player.chat") is "meg":
+            if mineroomsGetRank({_x}) is "meg_member":
+                set {_mb} to mineroomsData("chat.megMessage")
+                set {_rank} to userData(player, "player.rank")
+                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", player)
+                if "%{_rankName}%" is "<none>":
+                    set {_rankName} to ""
+                if {_rankName} contain "§l":
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::2}%"
+                    set {_rankColor} to "%{_rankColor}%§l"
+                else:
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::1}%"
+                set {_mb} to "%{_mb}%"
+                set {_c} to 0
+                add "M.E.G" to {_args::*}
+                add {_rankColor} to {_args::*}
+                add {_rankName} to {_args::*}
+                add player's name to {_args::*}
+                add message to {_args::*}
+                loop {_args::*}:
+                    set {_v} to loop-value-2
+                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                    add 1 to {_c}
+                send formatted {_mb} to loop-player
+                send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                clear {_args::*}
+        else if "%mineroomsGetLevels(true)%" contain userData(player, "player.chat"):
+            if {_xc} is false:
+                set {_mb} to mineroomsData("chat.levelMessage")
+                set {_rank} to userData(player, "player.rank")
+                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", player)
+                if "%{_rankName}%" is "<none>":
+                    set {_rankName} to ""
+                if {_rankName} contain "§l":
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::2}%"
+                    set {_rankColor} to "%{_rankColor}%§l"
+                else:
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::1}%"
+                set {_mb} to "%{_mb}%"
+                set {_c} to 0
+                #set {_levelName} to configLang(, {_player})
+                set {_levelName} to userData(player, "player.chat")
+                replace "Niveau_" with "" in {_levelName}
+                add lang("minerooms.command.noClip.levels.%{_levelName}%", player) to {_args::*}
+                add {_rankColor} to {_args::*}
+                add {_rankName} to {_args::*}
+                add player's name to {_args::*}
+                add message to {_args::*}
+                loop {_args::*}:
+                    set {_v} to loop-value-2
+                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                    add 1 to {_c}
+                send formatted {_mb} to player
+                set {_xc} to true
+                clear {_args::*}
+            if loop-player's world is userData(player, "player.chat"):
+                set {_mb} to mineroomsData("chat.message")
+                set {_rank} to userData(player, "player.rank")
+                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+                if "%{_rankName}%" is "<none>":
+                    set {_rankName} to ""
+                if {_rankName} contain "§l":
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::2}%"
+                    set {_rankColor} to "%{_rankColor}%§l"
+                else:
+                    set {_cc::*} to {_rankName} split by "§"
+                    set {_rankColor} to "§%{_cc::1}%"
+                set {_mb} to "%{_mb}%"
+                set {_c} to 0
+                add {_rankColor} to {_args::*}
+                add {_rankName} to {_args::*}
+                add player's name to {_args::*}
+                add message to {_args::*}
+                loop {_args::*}:
+                    set {_v} to loop-value-2
+                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                    add 1 to {_c}
+                send formatted {_mb} to loop-player
+                send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                clear {_args::*}
 function mineroomsNoClip(player: player):
     set {_gui} to genericGui(lang("minerooms.command.noClip.gui.title", {_player}), 5, true)
     set slot 22 of {_gui} to redstone block named "§4Wait.."
@@ -1041,7 +1480,7 @@ function mineroomsNoClipGuiUpdater(player: player):
     loop yaml node keys "levels" from "bck.manager.minerooms.data":
         add loop-node to {_levelsList::*}
     loop {_levelsList::*}:
-        if {_sc} = 17 or 27:
+        if {_sc} = 17 or 26:
             add 2 to {_sc}
         set {_r} to loop-value
         set {_r::*} to {_r} split by "."
