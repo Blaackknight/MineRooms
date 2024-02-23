@@ -50,6 +50,10 @@ minerooms:
                 name: "§3Thalassophobia"
             8:
                 name: "§8Caves System"
+            9:
+                name: "§8Darkened Suburbs"
+            10:
+                name: "§eWheat fields"
             11:
                 name: "§6Endless city"
             19:
@@ -91,6 +95,8 @@ minerooms:
                 6: "Level_6"
                 7: "Level_7"
                 8: "Level_8"
+                9: "Level_9"
+                10: "Level_10"
                 11: "Level_11"
                 19: "Level_19"
                 37: "Level_37"

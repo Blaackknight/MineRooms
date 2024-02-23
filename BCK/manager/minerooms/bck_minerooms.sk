@@ -239,10 +239,6 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                     exit loop
                 add 1 to {_ss}
         else if arg-1 is "chat":
-            if hasPermission(player, "op") is false:
-                add arg-1 to {_args::*}
-                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
-                stop
             if arg-2 is not set:
                 send formatted lang("minerooms.command.chat.missingOption", player) to player
                 stop
@@ -302,8 +298,10 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 add arg-1 to {_args::*}
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
                 stop
+            make console execute command "/sk reload scripts"
+            wait 1 second
             send formatted superLang("minerooms.command.rlc.deletingFile", player, {_args::*}) to player
-            delete script {@configFileLocation}
+            delete script "%{@configFileLocation}%"
             wait 1 second
             send formatted superLang("minerooms.command.rlc.creatingFile", player, {_args::*}) to player
             wait 1 second
@@ -326,6 +324,15 @@ command /v:
             send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
             stop
         mineroomsVanish(player)
+command /noclip:
+    aliases: /n, no
+    description: Alternative of /mr noclip
+    trigger:
+        if hasPermission(player, "op") is false:
+            add command to {_args::*}
+            send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+            stop
+        mineroomsNoClip(player)
 #                                      mineroomsLoad functions                                                                          #
 function mineroomsLoad(callback: boolean=true):
     set {_data::*} to yaml list "data.minerooms.load.options" from "bck.manager.minerooms.config"
@@ -370,6 +377,24 @@ function mineroomsLoad(callback: boolean=true):
 
     mineroomsData("decoCombat.time", "set", mineroomsServerConfig("decoCombat.time"))
 
+    mineroomsDataBoolean("supply.status", "set", mineroomsServerConfigBoolean("supply.status"))
+    mineroomsDataInteger("supply.minChance", "set", mineroomsServerConfigInteger("supply.minChance"))
+    mineroomsDataInteger("supply.maxChance", "set", mineroomsServerConfigInteger("supply.maxChance"))
+    mineroomsDataInteger("supply.extraChance", "set", mineroomsServerConfigInteger("supply.extraChance"))
+    mineroomsDataInteger("supply.maxSupplyPerRestock", "set", mineroomsServerConfigInteger("supply.maxSupplyPerRestock"))
+
+    mineroomsData("startingKit.status", "set", mineroomsServerConfig("startingKit.status"))
+    loop yaml node keys "startingKit" from "bck.server.minerooms.config":
+        add loop-node to {_kitItems::*}
+    loop {_kitItems::*}:
+        set {_r} to loop-value
+        set {_rr} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_items::*} to yaml list "%{_rr}%" from "bck.server.minerooms.config"
+        if {_items::*} is set:
+            set yaml list "%{_rr}%" from "bck.manager.minerooms.data" to {_items::*}
+            save "bck.manager.minerooms.data"
     loop yaml node keys "levels" from "bck.server.minerooms.config":
         add loop-node to {_levelsList::*}
     loop {_levelsList::*}:
@@ -396,6 +421,7 @@ function mineroomsLoad(callback: boolean=true):
         set {_levelDropItem} to yaml value "%loop-value%.dropItem" from "bck.server.minerooms.config"
         set {_levelFallDamage} to yaml value "%loop-value%.fallDamage" from "bck.server.minerooms.config"
         set {_levelDecoCombat} to yaml value "%loop-value%.decoCombat" from "bck.server.minerooms.config"
+        set {_levelCropTrample} to yaml value "%loop-value%.cropTrample" from "bck.server.minerooms.config"
         set {_levelHealth} to yaml value "%loop-value%.health" from "bck.server.minerooms.config"
         set {_levelEffectType} to yaml value "%loop-value%.effect.type" from "bck.server.minerooms.config"
         set {_levelEffectEffects::*} to yaml list "%loop-value%.effect.effects" from "bck.server.minerooms.config"
@@ -436,6 +462,8 @@ function mineroomsLoad(callback: boolean=true):
             set {_levelFallDamage} to "false"
         if "%{_levelDecoCombat}%" is "<none>":
             set {_levelDecoCombat} to "false"
+        if "%{_levelCropTrample}%" is "<none>":
+            set {_levelCropTrample} to "false"
         if "%{_levelHealth}%" is "<none>":
             set {_levelHealth} to 20
         if "%{_levelEffectType}%" is "<none>":
@@ -458,6 +486,7 @@ function mineroomsLoad(callback: boolean=true):
         mineroomsData("%loop-value%.dropItem", "set", "%{_levelDropItem}%")
         mineroomsData("%loop-value%.fallDamage", "set", "%{_levelFallDamage}%")
         mineroomsData("%loop-value%.decoCombat", "set", "%{_levelDecoCombat}%")
+        mineroomsData("%loop-value%.cropTrample", "set", "%{_levelCropTrample}%")
         mineroomsData("%loop-value%.health", "set", "%{_levelHealth}%")
         mineroomsData("%loop-value%.effect.type", "set", "%{_levelEffectType}%")
         set yaml list "%loop-value%.effect.effects" from "bck.manager.minerooms.data" to  {_levelEffectEffects::*}
@@ -664,7 +693,35 @@ function mineroomsCustomBlocksGuiMain(player: player):
     set slot 21 of {_gui} to {_restock}
     set slot 23 of {_gui} to {_coordinate}
     set slot 15 of {_gui} to {_travel}
-    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.main")
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.main")        
+function mineroomsGiveStartingKit(player: player):
+    loop yaml node keys "startingKit" from "bck.server.minerooms.config":
+        add loop-node to {_kitItems::*}
+    loop {_kitItems::*}:
+        set {_r} to loop-value
+        set {_rr} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_items::*} to yaml list "%{_rr}%" from "bck.server.minerooms.config"
+        if {_items::*} is set:
+            loop {_items::*}:
+                set {_v} to loop-value-2
+                set {_c} to 1
+                if {_v} contain "|":
+                    set {_data::*} to {_v} split by "|"
+                    set {_i} to {_data::1}
+                    replace all "_" with " " in {_i}
+                    set {_i} to {_i} parsed as item
+                    set {_c} to {_data::2}
+                    set {_c} to {_c} parsed as integer
+                else:
+                    set {_i} to {_v}
+                    replace all "_" with " " in {_i}
+                    set {_i} to {_i} parsed as item
+                if {_c} is not set:
+                    set {_c} to 1
+                give {_c} of {_i} to {_player}
+                clear {_i}
 on right click:
     set {_b} to event-block
     if "%type of {_b}%" contain "chest" or "shulker box" or "barrel":
@@ -776,7 +833,7 @@ on damage:
 on join:
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
-    else if mineroomsGetAllRanks() doesn't contain userData(player, "player.rank"):
+    else if "%mineroomsGetAllRanks()%" doesn't contain userData(player, "player.rank"):
         mineroomsSetRank(player, "wanderer", true)
     if userData(player, "data.language") is "<none>":
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
@@ -981,6 +1038,55 @@ function mineroomsCustomBlocksTravelGuiMain(player: player):
         add 1 to {_s}
         clear {_xx::*}
     userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.travel.main")
+every 1 seconds:
+    if mineroomsDataBoolean("supply.status") is true: 
+        set {_min} to mineroomsDataInteger("supply.minChance")
+        set {_max} to mineroomsDataInteger("supply.maxChance")
+        set {_extra} to mineroomsDataInteger("supply.extraChance")
+        set {_n} to rng({_min}, {_max})
+        chance of {_n}%:
+            chance of {_extra}%:
+                mineroomsRandomSupplys()
+function mineroomsRandomSupplys():
+    set {_maxS} to mineroomsDataInteger("supply.maxSupplyPerRestock")
+    set {_c} to 0
+    set {_supplys::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.bdd"
+    if {_maxS} is 1:
+        set {_v} to {_supplys::%rng(1,listCounter({_supplys::*}))%}
+        set {_data::*} to {_v} split by "|"
+        set {_x} to {_data::1}
+        set {_x} to {_x} parsed as number
+        set {_y} to {_data::2}
+        set {_y} to {_y} parsed as number
+        set {_z} to {_data::3}
+        set {_z} to {_z} parsed as number
+        set {_w} to {_data::4}
+        set {_w} to world("%{_w}%")
+        set {_g} to location({_x}, {_y}, {_z}, {_w})
+        set {_b} to block at {_g}
+        set {_bb} to block at {_g}
+        if "%block data of {_b}%" doesn't contain "note=15":
+            set block data of {_b} to note_block[note=15]
+            add 1 to {_c}
+    else:
+        loop {_supplys::*}:
+            if {_c} < {_maxS}:
+                set {_v} to loop-value
+                set {_data::*} to {_v} split by "|"
+                set {_x} to {_data::1}
+                set {_x} to {_x} parsed as number
+                set {_y} to {_data::2}
+                set {_y} to {_y} parsed as number
+                set {_z} to {_data::3}
+                set {_z} to {_z} parsed as number
+                set {_w} to {_data::4}
+                set {_w} to world("%{_w}%")
+                set {_g} to location({_x}, {_y}, {_z}, {_w})
+                set {_b} to block at {_g}
+                set {_bb} to block at {_g}
+                if "%block data of {_b}%" doesn't contain "note=15":
+                    set block data of {_b} to note_block[note=15]
+                    add 1 to {_c}
 on inventory click:
     if userData(player, "data.inv") is "false":
         stop
@@ -1144,11 +1250,12 @@ on first join:
         send formatted {_r} to player
         clear {_args::*}
     make console execute command "/team join wanderer %player's name%"
-    wait 5 seconds
+    wait 2 seconds
     set player's helmet to golden helmet
     set player's chestplate to golden chestplate
     set player's leggings to golden leggings
     set player's boots to golden boots
+    mineroomsGiveStartingKit(player)
     wait 1 seconds
     mineroomsTravel(player, 0, true)
 on place:
@@ -1183,6 +1290,7 @@ on place:
         add {_k} to {_args::*}
         send actionbar formatted superLang("minerooms.command.restock.added", player, {_args::*}) to player
         play sound "entity.experience_orb.pickup" with volume 0.3 for player
+        set block data of {_b} to note_block[note=15]
     else if {_x} contain "<coordinate:":
         set {_data::*} to {_x} split by ":"
         set {_k} to {_data::2}
@@ -1435,6 +1543,9 @@ on right click:
             if player cannot hold 1 barrier:
                 cancel event
                 stop
+            if "%block data of {_b}%" contain "note=10":
+                cancel event
+                stop
             play sound "block.note_block.bit" with volume 0.7 with pitch 0.8 for player
             send title lang("minerooms.command.restock.collected", player) to player
             loop {_supplys::*}:
@@ -1480,6 +1591,7 @@ on right click:
                         cancel event
                         chance of {_restockChance}%:
                             give {_restockCount} of {_item} to player
+                        set block data of {_b} to note_block[note=10]
                     
     else if {_e} is set:
 
@@ -1659,7 +1771,7 @@ on chat:
                 send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
                 clear {_args::*}
         else if userData(player, "player.chat") is "staff":
-            if hasPermission(player, "op"):
+            if hasPermission(loop-player, "op"):
                 set {_mb} to mineroomsData("chat.staffMessage")
                 set {_rank} to userData(player, "player.rank")
                 set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
@@ -2187,6 +2299,27 @@ function mineroomsServerConfigBoolean(find: text, mode: text="extract", data: bo
     if {_result} is not set:
         set {_result} to false
     return {_result}
+function mineroomsServerConfigInteger(find: text, mode: text="extract", data: integer=0) :: integer:
+    if {_mode} is "extract":
+        set {_result} to yaml value "%{_find}%" from "bck.server.minerooms.config"
+        if {_result} isn't set:
+            if {_data} isn't empty:
+                set {_result} to {_data}
+    else if {_mode} is "delete":
+        set {_result} to yaml value "%{_find}%" from "bck.server.minerooms.config"
+        if {_result} is set:
+            delete yaml value "%{_find}%" from "bck.server.minerooms.config"
+            save yaml "bck.server.minerooms.config"
+        else:
+            set yaml value "%{_find}%" from "bck.server.minerooms.config" to {_data}
+            save yaml "bck.server.minerooms.config"
+    else if {_mode} is "set":
+        set yaml value "%{_find}%" from "bck.server.minerooms.config" to {_data}
+        save yaml "bck.server.minerooms.config"
+    set {_result} to "%{_result}%" parsed as integer
+    if {_result} is not set:
+        set {_result} to 0
+    return {_result}
 function mineroomsServerConfigItem(find: text, mode: text="extract", data: item=air) :: item:
     if {_mode} is "extract":
         set {_result} to yaml value "%{_find}%" from "bck.server.minerooms.config"
@@ -2411,3 +2544,9 @@ on death:
         userData(victim, "player.temp.decoCombat.active", "set", "false")
         userData(attacker, "player.temp.decoCombat.active", "set", "false")
         userData(victim, "player.temp.decoCombat.attacker", "set", "??")
+on block interact:
+    set {_name} to "%event-world%"
+    replace "Niveau_" with "" in {_name}
+    if "%event-block%" contain "farmland":
+        if mineroomsData("levels.%{_name}%.cropTrample") is "false":
+            cancel event

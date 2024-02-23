@@ -50,6 +50,10 @@ minerooms:
                 name: "§3Thalassophobie"
             8:
                 name: "§8Réseau de cavernes"
+            9:
+                name: "§8Banlieues sombres"
+            10:
+                name: "§eChamps de blés"
             11:
                 name: "§6Ville sans fin"
             19:
@@ -91,6 +95,8 @@ minerooms:
                 6: "Niveau_6"
                 7: "Niveau_7"
                 8: "Niveau_8"
+                9: "Niveau_9"
+                10: "Niveau_10"
                 11: "Niveau_11"
                 19: "Niveau_19"
                 37: "Niveau_37"
