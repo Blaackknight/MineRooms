@@ -75,6 +75,7 @@ on tab complete of "/skm":
 #                                      minerooms command                                                                          #
 command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
     aliases: /mr
+    description: Main command of minerooms
     trigger:
         if arg-1 is not set:
             add command to {_args::*}
@@ -306,15 +307,31 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
             wait 1 second
             send formatted superLang("minerooms.command.rlc.creatingFile", player, {_args::*}) to player
             wait 1 second
-            mineroomsLoad()
+            mineroomsLoad(false)
+            make console execute command "/sk reload scripts"
+        else if arg-1 is "customBlocks":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            mineroomsCustomBlocksGuiMain(player)
         else:
             add arg-1 to {_args::*}
             send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+command /v:
+    description: Alternative of /mr vanish
+    trigger:
+        if hasPermission(player, "op") is false:
+            add command to {_args::*}
+            send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+            stop
+        mineroomsVanish(player)
 #                                      mineroomsLoad functions                                                                          #
-function mineroomsLoad():
+function mineroomsLoad(callback: boolean=true):
     set {_data::*} to yaml list "data.minerooms.load.options" from "bck.manager.minerooms.config"
     if file {@configFileLocation} doesn't exist:
-        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization..", "6.")
+        if {_callback} is true:
+            superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization..", "6")
         create script "plugins/MineRooms/config.yml"
         write "##                                                                                                                              " at line 1 to file {@configFileLocation}
         write "##                   ,,                                                                                 " at line 2 to file {@configFileLocation}
@@ -342,7 +359,8 @@ function mineroomsLoad():
         superLog("§6[§4BCK§6/§eMineRooms§6]§r §eInitialization §nComplete§r§e !", "6.4")
     wait 3 ticks
     load yaml {@configFileLocation} as "bck.server.minerooms.config"
-    superLog("§6[§4BCK§6/§eMineRooms§6]§r §aLoaded file succeffully !", "6.4")
+    if {_callback} is true:
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §aLoaded file succeffully !", "6.4")
     wait 2 ticks
 
     mineroomsData("chat.message", "set", mineroomsServerConfig("chat.message"))
@@ -510,7 +528,8 @@ function mineroomsLoad():
         set {_st} to mineroomsServerConfig("%loop-value%.status")
         coreDataBoolean("%{_r}%.status", "set", {_st})
     wait 5 ticks
-    superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.4")
+    if {_callback} is true:
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.4")
 
 #                                      tab complete minerooms                                                                          #
 on tab complete of "/minerooms" or "/mr":
@@ -529,6 +548,7 @@ on tab complete of "/minerooms" or "/mr":
         add "endersee" to {_data::*}
         add "freeze" to {_data::*}
         add "rlc" to {_data::*}
+        add "customBlocks" to {_data::*}
     add "wiki" to {_data::*}
     add "chat" to {_data::*}
     set tab completions for position 1 to {_data::*}
@@ -601,6 +621,50 @@ function mineroomsManageGuiMain(player: player):
     set slot 24 of {_gui} to {_clear}
     set slot 25 of {_gui} to {_kill}
     userData({_player}, "data.inv", "set", "manager.minerooms.manage.main")
+function mineroomsCustomBlocksGuiMain(player: player):
+    loadUserData({_player})
+    set {_gui} to genericGui(lang("minerooms.command.customBlocks.gui.title", {_player}), 4, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+
+    set {_gc} to 0
+    loop 24 times:
+        if {_gc} is 10 or 19:
+            add 7 to {_gc}
+        else if {_gc} is 31:
+            add 1 to {_gc}
+        set slot {_gc} of {_gui} to yellow stained glass pane named "§l"
+        add 1 to {_gc}
+
+    set {_blocks::*} to yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.bdd"
+    set {_restocks::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.bdd"
+    set {_coordinates::*} to yaml list "minerooms.coordinate.coordinates" from "bck.manager.minerooms.bdd"
+    set {_travels::*} to yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd"
+    set {_langCount} to listCounter({_blocks::*})
+    set {_supplyCount} to listCounter({_restocks::*})
+    set {_coordinateCount} to listCounter({_coordinates::*})
+    set {_travelCount} to listCounter({_travels::*})
+    set {_lang} to paper named lang("minerooms.command.customBlocks.gui.lang.name", {_player})
+    set {_restock} to chest named lang("minerooms.command.customBlocks.gui.supply.name", {_player})
+    set {_coordinate} to compass named lang("minerooms.command.customBlocks.gui.coordinate.name", {_player})
+    set {_travel} to end portal frame named lang("minerooms.command.customBlocks.gui.travel.name", {_player})
+    set line 2 of lore of {_lang} to superLang("minerooms.command.customBlocks.gui.lang.lore", {_player}, "%{_langCount}%")
+    set line 2 of lore of {_restock} to superLang("minerooms.command.customBlocks.gui.supply.lore", {_player}, "%{_supplyCount}%")
+    set line 2 of lore of {_coordinate} to superLang("minerooms.command.customBlocks.gui.coordinate.lore", {_player}, "%{_coordinateCount}%")
+    set line 2 of lore of {_travel} to superLang("minerooms.command.customBlocks.gui.travel.lore", {_player}, "%{_travelCount}%")
+
+    set line 4 of lore of {_lang} to lang("minerooms.command.customBlocks.gui.clickToSeeMore", {_player})
+    set line 4 of lore of {_restock} to lang("minerooms.command.customBlocks.gui.clickToSeeMore", {_player})
+    set line 4 of lore of {_coordinate} to lang("minerooms.command.customBlocks.gui.clickToSeeMore", {_player})
+    set line 4 of lore of {_travel} to lang("minerooms.command.customBlocks.gui.clickToSeeMore", {_player})
+
+    set slot 11 of {_gui} to {_lang}
+    set slot 21 of {_gui} to {_restock}
+    set slot 23 of {_gui} to {_coordinate}
+    set slot 15 of {_gui} to {_travel}
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.main")
 on right click:
     set {_b} to event-block
     if "%type of {_b}%" contain "chest" or "shulker box" or "barrel":
@@ -738,10 +802,252 @@ function mineroomsGetLevels(o: boolean=false) :: objects:
         else:
             add {_v} to {_args::*}
     return {_args::*}
+function mineroomsCustomBlocksLangGuiMain(player: player):
+    loadUserData({_player})
+    set {_blocks::*} to yaml list "minerooms.lang.blocks" from "bck.manager.minerooms.bdd"
+    set {_langCount} to listCounter({_blocks::*})
+    set {_gui} to genericGui(superLang("minerooms.command.customBlocks.gui.lang.title", {_player}, "%{_langCount}%"), 6, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.lang.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_s} to 0
+    loop {_blocks::*}:
+        set {_v} to loop-value
+        set {_data::*} to {_v} split by "|"
+        set {_x} to {_data::1}
+        set {_x} to {_x} parsed as number
+        set {_y} to {_data::2}
+        set {_y} to {_y} parsed as number
+        set {_z} to {_data::3}
+        set {_z} to {_z} parsed as number
+        set {_w} to {_data::4}
+        set {_w} to world("%{_w}%")
+        set {_k} to {_data::5}
+        set {_g} to location({_x}, {_y}, {_z}, {_w})
+        set {_b} to block at {_g}
+        set {_bb} to block at {_g}
+        set {_a} to 0
+        set {_va} to "§a✔"
+        if {_b} is air:
+            set {_b} to bedrock
+            set {_va} to "§4✘"
+        add {_va} to {_xx::*}
+        add "%type of {_bb}%" to {_xx::*}
+        set line 1 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.notFound", {_player}, {_xx::*})
+        set line 2 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.x", {_player}, "%{_x}%")
+        set line 3 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.y", {_player}, "%{_y}%")
+        set line 4 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.z", {_player}, "%{_z}%")
+        set line 5 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.world", {_player}, "%{_w}%")
+        set line 6 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.key", {_player}, "%{_k}%")
+        set slot {_s} of {_gui} to {_b}
+        add 1 to {_s}
+        clear {_xx::*}
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.lang.main")
+function mineroomsCustomBlocksSupplyGuiMain(player: player):
+    loadUserData({_player})
+    set {_restocks::*} to yaml list "minerooms.restock.supplys" from "bck.manager.minerooms.bdd"
+    set {_supplyCount} to listCounter({_restocks::*})
+    set {_gui} to genericGui(superLang("minerooms.command.customBlocks.gui.supply.title", {_player}, "%{_supplyCount}%"), 6, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.supply.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_s} to 0
+    loop {_restocks::*}:
+        set {_v} to loop-value
+        set {_data::*} to {_v} split by "|"
+        set {_x} to {_data::1}
+        set {_x} to {_x} parsed as number
+        set {_y} to {_data::2}
+        set {_y} to {_y} parsed as number
+        set {_z} to {_data::3}
+        set {_z} to {_z} parsed as number
+        set {_w} to {_data::4}
+        set {_w} to world("%{_w}%")
+        set {_type} to {_data::5}
+        set {_g} to location({_x}, {_y}, {_z}, {_w})
+        set {_b} to block at {_g}
+        set {_bb} to block at {_g}
+        set {_a} to 0
+        set {_va} to "§a✔"
+        if {_b} is air:
+            set {_b} to bedrock
+            set {_va} to "§4✘"
+        add {_va} to {_xx::*}
+        add "%type of {_bb}%" to {_xx::*}
+        set line 1 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.notFound", {_player}, {_xx::*})
+        set line 2 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.x", {_player}, "%{_x}%")
+        set line 3 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.y", {_player}, "%{_y}%")
+        set line 4 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.z", {_player}, "%{_z}%")
+        set line 5 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.world", {_player}, "%{_w}%")
+        set line 6 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.type", {_player}, "%{_type}%")
+        set slot {_s} of {_gui} to {_b}
+        add 1 to {_s}
+        clear {_xx::*}
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.supply.main")
+function mineroomsCustomBlocksCoordinateGuiMain(player: player):
+    loadUserData({_player})
+    set {_coordinates::*} to yaml list "minerooms.coordinate.coordinates" from "bck.manager.minerooms.bdd"
+    set {_coordinateCount} to listCounter({_coordinates::*})
+    set {_gui} to genericGui(superLang("minerooms.command.customBlocks.gui.coordinate.title", {_player}, "%{_coordinateCount}%"), 6, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.coordinate.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_s} to 0
+    loop {_coordinates::*}:
+        set {_v} to loop-value
+        set {_data::*} to {_v} split by "|"
+        set {_x} to {_data::1}
+        set {_x} to {_x} parsed as number
+        set {_y} to {_data::2}
+        set {_y} to {_y} parsed as number
+        set {_z} to {_data::3}
+        set {_z} to {_z} parsed as number
+        set {_w} to {_data::4}
+        set {_w} to world("%{_w}%")
+        set {_g} to location({_x}, {_y}, {_z}, {_w})
+        set {_xx} to {_data::5}
+        set {_xx} to {_xx} parsed as number
+        set {_yy} to {_data::6}
+        set {_yy} to {_yy} parsed as number
+        set {_zz} to {_data::7}
+        set {_zz} to {_zz} parsed as number
+        set {_b} to block at {_g}
+        set {_bb} to block at {_g}
+        set {_a} to 0
+        set {_va} to "§a✔"
+        if {_b} is air:
+            set {_b} to bedrock
+            set {_va} to "§4✘"
+        add {_va} to {_xx::*}
+        add "%type of {_bb}%" to {_xx::*}
+        set line 1 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.notFound", {_player}, {_xx::*})
+        set line 2 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.x", {_player}, "%{_x}%")
+        set line 3 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.y", {_player}, "%{_y}%")
+        set line 4 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.z", {_player}, "%{_z}%")
+        set line 5 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.world", {_player}, "%{_w}%")
+        set line 6 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.teleport_x", {_player}, "%{_xx}%")
+        set line 7 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.teleport_y", {_player}, "%{_yy}%")
+        set line 8 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.teleport_z", {_player}, "%{_zz}%")
+        set slot {_s} of {_gui} to {_b}
+        add 1 to {_s}
+        clear {_xx::*}
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.coordinate.main")
+function mineroomsCustomBlocksTravelGuiMain(player: player):
+    loadUserData({_player})
+    set {_travels::*} to yaml list "minerooms.travel.travels" from "bck.manager.minerooms.bdd"
+    set {_travelCount} to listCounter({_travels::*})
+    set {_gui} to genericGui(superLang("minerooms.command.customBlocks.gui.travel.title", {_player}, "%{_travelCount}%"), 6, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.travel.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_s} to 0
+    loop {_travels::*}:
+        set {_v} to loop-value
+        set {_data::*} to {_v} split by "|"
+        set {_x} to {_data::1}
+        set {_x} to {_x} parsed as number
+        set {_y} to {_data::2}
+        set {_y} to {_y} parsed as number
+        set {_z} to {_data::3}
+        set {_z} to {_z} parsed as number
+        set {_w} to {_data::4}
+        set {_w} to world("%{_w}%")
+        set {_g} to location({_x}, {_y}, {_z}, {_w})
+        set {_tw} to {_data::5}
+        replace all "." with "-" in {_tw}
+        set {_tw} to world("%{_tw}%")
+        if "%{_tw}%" is "<none>":
+            set {_tw} to "§3%{_data::5}%"
+        set {_b} to block at {_g}
+        set {_bb} to block at {_g}
+        set {_a} to 0
+        set {_va} to "§a✔"
+        if {_b} is air:
+            set {_b} to bedrock
+            set {_va} to "§4✘"
+        add {_va} to {_xx::*}
+        add "%type of {_bb}%" to {_xx::*}
+        set line 1 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.notFound", {_player}, {_xx::*})
+        set line 2 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.x", {_player}, "%{_x}%")
+        set line 3 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.y", {_player}, "%{_y}%")
+        set line 4 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.z", {_player}, "%{_z}%")
+        set line 5 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.world", {_player}, "%{_w}%")
+        set line 6 of lore of {_b} to superLang("minerooms.command.customBlocks.gui.travel_world", {_player}, "%{_tw}%")
+        set slot {_s} of {_gui} to {_b}
+        add 1 to {_s}
+        clear {_xx::*}
+    userData({_player}, "data.inv", "set", "manager.minerooms.customBlock.travel.main")
 on inventory click:
     if userData(player, "data.inv") is "false":
         stop
-    if userData(player, "data.inv") is "manager.minerooms.manage.main":
+    if userData(player, "data.inv") is "manager.minerooms.customBlock.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                close player's inventory
+        else if "%{_t}%" contain "paper":
+            mineroomsCustomBlocksLangGuiMain(player)
+        else if "%{_t}%" is "chest":
+            mineroomsCustomBlocksSupplyGuiMain(player)
+        else if "%{_t}%" is "compass":
+            mineroomsCustomBlocksCoordinateGuiMain(player)
+        else if "%{_t}%" contain "end portal frame":
+            mineroomsCustomBlocksTravelGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.customBlock.lang.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsCustomBlocksGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.customBlock.supply.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsCustomBlocksGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.customBlock.coordinate.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsCustomBlocksGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.customBlock.travel.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsCustomBlocksGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.manage.main":
         cancel event
         set {_gui} to player's current inventory
         set {_i} to event-slot

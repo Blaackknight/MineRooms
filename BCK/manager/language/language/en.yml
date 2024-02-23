@@ -138,6 +138,37 @@ minerooms:
         rlc:
             deletingFile: "§6[§eMineRooms§6]§r §cDeleting §rthe §bconfiguration file§r.."
             creatingFile: "§6[§eMineRooms§6]§r §aCreating §rthe §bconfiguration file§r..."
+        customBlocks:
+            gui:
+                title: "§0List of custom blocks"
+                clickToSeeMore: "§7§oClick to see more"
+                x: "§6X: §d<arg0>"
+                y: "§6Y: §d<arg0>"
+                z: "§6Z: §d<arg0>"
+                world: "§6World: §b<arg0>"
+                travel_world: "§6World targeted: §b<arg0>"
+                key: "§6Key: §a<arg0>"
+                type: "§6Type: §a<arg0>"
+                teleport_x: "§6X targeted: §d<arg0>"
+                teleport_y: "§6Y targeted: §d<arg0>"
+                teleport_z: "§6Z targeted: §d<arg0>"
+                notFound: "§6Validity: <arg0> §7§o(<arg1>)"
+                lang:
+                    name: "§8Language blocks"
+                    lore: "§dCount: §b<arg0>"
+                    title: "§0Language blocks §1§o(<arg0>)"
+                supply:
+                    name: "§8Resupply Blocks"
+                    lore: "§dCount: §b<arg0>"
+                    title: "§0Resupply Blocks §1§o(<arg0>)"
+                coordinate:
+                    name: "§8Teleport Blocks"
+                    lore: "§dCount: §b<arg0>"
+                    title: "§0Teleport Blocks §1§o(<arg0>)"
+                travel:
+                    name: "§8Travel blocks"
+                    lore: "§dCount: §b<arg0>"
+                    title: "§0Travel blocks §1§o(<arg0>)"
     freeze:
         playerFreeze: "§1You have been freezed :("
         youFreeze: "§6[§eMineRooms§6]§r §eYou just froze §7<arg0>"
