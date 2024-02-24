@@ -280,6 +280,8 @@ minerooms:
             pages:
                 - "Bienvenue §7<player>§r dans §6§lMineRooms §r!"
                 - "Meuuuuuuuuhhhh"
+    supply:
+        waiting: "§eCaisse en §battente §ede réapprovisionnement par le §1§lM.E.G §e!"
 
 
 

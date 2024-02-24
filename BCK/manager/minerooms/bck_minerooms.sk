@@ -1545,6 +1545,7 @@ on right click:
                 stop
             if "%block data of {_b}%" contain "note=10":
                 cancel event
+                send actionbar superLang("minerooms.supply.waiting", player, {_args::*}) to player
                 stop
             play sound "block.note_block.bit" with volume 0.7 with pitch 0.8 for player
             send title lang("minerooms.command.restock.collected", player) to player
