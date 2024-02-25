@@ -1,0 +1,9 @@
+data:
+    item: paper
+    defaultName: §fBackpack
+    customName: true
+    lore: "§7--⟨ §6Backpack§7 ⟩--"
+    tier1: "§7⇾ §fTier: §a1"
+    tier2: "§7⇾ §fTier: §e2"
+    tier3: "§7⇾ §fTier: §63"
+    tierU: "§7⇾ §fTier:"

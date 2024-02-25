@@ -298,8 +298,7 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 add arg-1 to {_args::*}
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
                 stop
-            make console execute command "/sk reload scripts"
-            wait 1 second
+            #make console execute command "/sk reload scripts"
             send formatted superLang("minerooms.command.rlc.deletingFile", player, {_args::*}) to player
             delete script "%{@configFileLocation}%"
             wait 1 second
@@ -423,6 +422,9 @@ function mineroomsLoad(callback: boolean=true):
         set {_levelDecoCombat} to yaml value "%loop-value%.decoCombat" from "bck.server.minerooms.config"
         set {_levelCropTrample} to yaml value "%loop-value%.cropTrample" from "bck.server.minerooms.config"
         set {_levelHealth} to yaml value "%loop-value%.health" from "bck.server.minerooms.config"
+        set {_levelChatStatus} to yaml value "%loop-value%.chat.status" from "bck.server.minerooms.config"
+        set {_levelChatProximity} to yaml value "%loop-value%.chat.proximity" from "bck.server.minerooms.config"
+        set {_levelChatProximityRange} to yaml value "%loop-value%.chat.proximity_range" from "bck.server.minerooms.config"
         set {_levelEffectType} to yaml value "%loop-value%.effect.type" from "bck.server.minerooms.config"
         set {_levelEffectEffects::*} to yaml list "%loop-value%.effect.effects" from "bck.server.minerooms.config"
         set {_levelMobSpawnAlloy::*} to yaml list "%loop-value%.mobSpawn.alloy" from "bck.server.minerooms.config"
@@ -466,6 +468,12 @@ function mineroomsLoad(callback: boolean=true):
             set {_levelCropTrample} to "false"
         if "%{_levelHealth}%" is "<none>":
             set {_levelHealth} to 20
+        if "%{_levelChatStatus}%" is "<none>":
+            set {_levelChatStatus} to true
+        if "%{_levelChatProximity}%" is "<none>":
+            set {_levelChatProximity} to false
+        if "%{_levelChatProximityRange}%" is "<none>":
+            set {_levelChatProximityRange} to 10
         if "%{_levelEffectType}%" is "<none>":
             set {_levelEffectType} to "1"
         mineroomsData("%loop-value%.name", "set", "%{_levelName}%")
@@ -488,6 +496,9 @@ function mineroomsLoad(callback: boolean=true):
         mineroomsData("%loop-value%.decoCombat", "set", "%{_levelDecoCombat}%")
         mineroomsData("%loop-value%.cropTrample", "set", "%{_levelCropTrample}%")
         mineroomsData("%loop-value%.health", "set", "%{_levelHealth}%")
+        mineroomsData("%loop-value%.chat.status", "set", "%{_levelChatStatus}%")
+        mineroomsData("%loop-value%.chat.proximity", "set", "%{_levelChatProximity}%")
+        mineroomsData("%loop-value%.chat.proximity_range", "set", "%{_levelChatProximityRange}%")
         mineroomsData("%loop-value%.effect.type", "set", "%{_levelEffectType}%")
         set yaml list "%loop-value%.effect.effects" from "bck.manager.minerooms.data" to  {_levelEffectEffects::*}
         set yaml list "%loop-value%.mobSpawn.allow" from "bck.manager.minerooms.data" to  {_levelMobSpawnAlloy::*}
@@ -506,30 +517,37 @@ function mineroomsLoad(callback: boolean=true):
             set {_ii} to loop-value-2
             set {_i::*} to {_i} split by "."
             set {_i} to {_i::3}
+            set {_iii} to {_i}
             replace all "_" with " " in {_i}
-            
-            set {_restockMin} to yaml value "%{_ii}%.min" from "bck.server.minerooms.config" 
-            set {_restockMax} to yaml value "%{_ii}%.max" from "bck.server.minerooms.config" 
-            set {_restockChance} to yaml value "%{_ii}%.chance" from "bck.server.minerooms.config"
-            set {_restockMin} to "%{_restockMin}%" parsed as integer
-            set {_restockMax} to "%{_restockMax}%" parsed as integer
-            set {_restockChance} to "%{_restockChance}%" parsed as integer
-            set {_restockCustomName} to mineroomsServerConfig("%{_ii}%.custom.name")
-            set {_restockCustomLores::*} to yaml list "%{_ii}%.custom.lores" from "bck.server.minerooms.config"
-            if "%{_restockMin}%" is "<none>":
-                set {_restockMin} to 0
-            if "%{_restockMax}%" is "<none>":
-                set {_restockMin} to 1
-            if "%{_restockChance}%" is "<none>":
-                set {_restockChance} to 100
-            mineroomsData("%{_ii}%.min", "set", "%{_restockMin}%")
-            mineroomsData("%{_ii}%.max", "set", "%{_restockMax}%")
-            mineroomsData("%{_ii}%.chance", "set", "%{_restockChance}%")
-            if {_restockCustomName} is set:
-                mineroomsData("%{_ii}%.custom.name", "set", {_restockCustomName})
-            if {_restockCustomLores::*} is set:
-                set yaml list "%{_ii}%.custom.lores" from "bck.manager.minerooms.data" to {_restockCustomLores::*}
-                save "bck.manager.minerooms.data"
+            if {_iii} is not "loot_type":
+                set {_restockMin} to yaml value "%{_ii}%.min" from "bck.server.minerooms.config" 
+                set {_restockMax} to yaml value "%{_ii}%.max" from "bck.server.minerooms.config" 
+                set {_restockChance} to yaml value "%{_ii}%.chance" from "bck.server.minerooms.config"
+                set {_restockMin} to "%{_restockMin}%" parsed as integer
+                set {_restockMax} to "%{_restockMax}%" parsed as integer
+                set {_restockChance} to "%{_restockChance}%" parsed as integer
+                set {_restockCustomName} to mineroomsServerConfig("%{_ii}%.custom.name")
+                set {_restockCustomLores::*} to yaml list "%{_ii}%.custom.lores" from "bck.server.minerooms.config"
+                if "%{_restockMin}%" is "<none>":
+                    set {_restockMin} to 0
+                if "%{_restockMax}%" is "<none>":
+                    set {_restockMin} to 1
+                if "%{_restockChance}%" is "<none>":
+                    set {_restockChance} to 100
+                mineroomsData("%{_ii}%.min", "set", "%{_restockMin}%")
+                mineroomsData("%{_ii}%.max", "set", "%{_restockMax}%")
+                mineroomsData("%{_ii}%.chance", "set", "%{_restockChance}%")
+                if {_restockCustomName} is set:
+                    mineroomsData("%{_ii}%.custom.name", "set", {_restockCustomName})
+                if {_restockCustomLores::*} is set:
+                    set yaml list "%{_ii}%.custom.lores" from "bck.manager.minerooms.data" to {_restockCustomLores::*}
+                    save "bck.manager.minerooms.data"
+            else:
+                set {_c} to yaml value "%{_ii}%" from "bck.server.minerooms.config" 
+                set {_c} to "%{_c}%" parsed as integer
+                if {_c} is set:
+                    set yaml value "%{_ii}%" from "bck.manager.minerooms.data" to "%{_c}%"
+                    save "bck.manager.minerooms.data"
 
     loop yaml node keys "ranks" from "bck.server.minerooms.config":
         add loop-node to {_ranksList::*}
@@ -839,6 +857,11 @@ on join:
         userData(player, "data.language", "set", languageConfig("data.defaultLanguage"))
     if userData(player, "player.chat") is "<none>":
         userData(player, "player.chat", "set", "default")
+    make console execute command "/title @a times 0s 1s 1s"
+command /push <player>:
+    trigger:
+        set {_v} to vector between player and arg-1
+        push player {_v}
 function mineroomsGetRestocks() :: objects:
     loop yaml node keys "restock" from "bck.manager.minerooms.data":
         add loop-node to {_dataList::*}
@@ -1062,12 +1085,64 @@ function mineroomsRandomSupplys():
         set {_z} to {_z} parsed as number
         set {_w} to {_data::4}
         set {_w} to world("%{_w}%")
+        set {_k} to {_data::5}
         set {_g} to location({_x}, {_y}, {_z}, {_w})
         set {_b} to block at {_g}
         set {_bb} to block at {_g}
-        if "%block data of {_b}%" doesn't contain "note=15":
-            set block data of {_b} to note_block[note=15]
-            add 1 to {_c}
+        if {_b} is note block:
+            set {_t} to mineroomsDataInteger("restock.%{_k}%.loot_type")
+            if "%block data of {_b}%" doesn't contain "note=%{_t}%":
+                if {_t} is 1:
+                    set block data of {_b} to note_block[note=1]
+                else if {_t} is 2:
+                    set block data of {_b} to note_block[note=2]
+                else if {_t} is 3:
+                    set block data of {_b} to note_block[note=3]
+                else if {_t} is 4:
+                    set block data of {_b} to note_block[note=4]
+                else if {_t} is 5:
+                    set block data of {_b} to note_block[note=5]
+                else if {_t} is 6:
+                    set block data of {_b} to note_block[note=6]
+                else if {_t} is 7:
+                    set block data of {_b} to note_block[note=7]
+                else if {_t} is 8:
+                    set block data of {_b} to note_block[note=8]
+                else if {_t} is 9:
+                    set block data of {_b} to note_block[note=9]
+                else if {_t} is 10:
+                    set block data of {_b} to note_block[note=10]
+                else if {_t} is 11:
+                    set block data of {_b} to note_block[note=11]
+                else if {_t} is 12:
+                    set block data of {_b} to note_block[note=12]
+                else if {_t} is 13:
+                    set block data of {_b} to note_block[note=13]
+                else if {_t} is 14:
+                    set block data of {_b} to note_block[note=14]
+                else if {_t} is 15:
+                    set block data of {_b} to note_block[note=15]
+                else if {_t} is 16:
+                    set block data of {_b} to note_block[note=16]
+                else if {_t} is 17:
+                    set block data of {_b} to note_block[note=17]
+                else if {_t} is 18:
+                    set block data of {_b} to note_block[note=18]
+                else if {_t} is 19:
+                    set block data of {_b} to note_block[note=19]
+                else if {_t} is 20:
+                    set block data of {_b} to note_block[note=20]
+                else if {_t} is 21:
+                    set block data of {_b} to note_block[note=21]
+                else if {_t} is 22:
+                    set block data of {_b} to note_block[note=22]
+                else if {_t} is 23:
+                    set block data of {_b} to note_block[note=23]
+                else if {_t} is 24:
+                    set block data of {_b} to note_block[note=24]
+                else:
+                    set block data of {_b} to note_block[note=0]
+                add 1 to {_c}
     else:
         loop {_supplys::*}:
             if {_c} < {_maxS}:
@@ -1290,7 +1365,58 @@ on place:
         add {_k} to {_args::*}
         send actionbar formatted superLang("minerooms.command.restock.added", player, {_args::*}) to player
         play sound "entity.experience_orb.pickup" with volume 0.3 for player
-        set block data of {_b} to note_block[note=15]
+        
+        if {_b} is note block:
+            set {_t} to mineroomsDataInteger("restock.%{_k}%.loot_type")
+            wait 1 tick
+            if {_t} is 1:
+                set block data of {_b} to note block[note=1]
+            else if {_t} is 2:
+                set block data of {_b} to note block[note=2]
+            else if {_t} is 3:
+                set block data of {_b} to note block[note=3]
+            else if {_t} is 4:
+                set block data of {_b} to note block[note=4]
+            else if {_t} is 5:
+                set block data of {_b} to note block[note=5]
+            else if {_t} is 6:
+                set block data of {_b} to note block[note=6]
+            else if {_t} is 7:
+                set block data of {_b} to note block[note=7]
+            else if {_t} is 8:
+                set block data of {_b} to note block[note=8]
+            else if {_t} is 9:
+                set block data of {_b} to note block[note=9]
+            else if {_t} is 10:
+                set block data of {_b} to note block[note=10]
+            else if {_t} is 11:
+                set block data of {_b} to note block[note=11]
+            else if {_t} is 12:
+                set block data of {_b} to note block[note=12]
+            else if {_t} is 13:
+                set block data of {_b} to note block[note=13]
+            else if {_t} is 14:
+                set block data of {_b} to note block[note=14]
+            else if {_t} is 15:
+                set block data of {_b} to note block[note=15]
+            else if {_t} is 16:
+                set block data of {_b} to note block[note=16]
+            else if {_t} is 17:
+                set block data of {_b} to note block[note=17]
+            else if {_t} is 18:
+                set block data of {_b} to note block[note=18]
+            else if {_t} is 19:
+                set block data of {_b} to note block[note=19]
+            else if {_t} is 20:
+                set block data of {_b} to note block[note=20]
+            else if {_t} is 21:
+                set block data of {_b} to note block[note=21]
+            else if {_t} is 22:
+                set block data of {_b} to note block[note=22]
+            else if {_t} is 23:
+                set block data of {_b} to note block[note=23]
+            else if {_t} is 24:
+                set block data of {_b} to note_block[note=24]
     else if {_x} contain "<coordinate:":
         set {_data::*} to {_x} split by ":"
         set {_k} to {_data::2}
@@ -1560,38 +1686,39 @@ on right click:
                         set {_ii} to loop-value-2
                         set {_i::*} to {_i} split by "."
                         set {_i} to {_i::3}
-                        replace all "_" with " " in {_i}
-                        set {_i} to {_i} parsed as item
-                        
-                        set {_restockMin} to yaml value "%{_ii}%.min" from "bck.manager.minerooms.data" 
-                        set {_restockMax} to yaml value "%{_ii}%.max" from "bck.manager.minerooms.data" 
-                        set {_restockChance} to yaml value "%{_ii}%.chance" from "bck.manager.minerooms.data"
-                        set {_restockMin} to "%{_restockMin}%" parsed as integer
-                        set {_restockMax} to "%{_restockMax}%" parsed as integer
-                        set {_restockChance} to "%{_restockChance}%" parsed as integer
-                        set {_restockCustomName} to mineroomsServerConfig("%{_ii}%.custom.name")
-                        set {_restockCustomLores::*} to yaml list "%{_ii}%.custom.lores" from "bck.manager.minerooms.data"
-                        set {_item} to {_i}
-                        if {_restockCustomName} is set:
-                            set {_item} to {_i} named {_restockCustomName}
-                        if {_restockCustomLores::*} is set:
-                            set {_b} to 1
-                            loop {_restockCustomLores::*}:
-                                set {_v} to loop-value-3
-                                if {_v} contain "<lang:":
-                                    set {_vv::*} to {_v} split by ":"
-                                    set {_k} to {_vv::2}
-                                    replace ">" with "" in {_k}
-                                    set {_v} to lang({_k}, player) 
-                                set line {_b} of lore of {_item} to {_v}
-                                add 1 to {_b}
-                        set {_restockCount} to rng({_restockMin}, {_restockMax})
-                        if player cannot hold {_restockCount} of {_item}:
+                        if {_i} is not "loot_type":
+                            replace all "_" with " " in {_i}
+                            set {_i} to {_i} parsed as item
+                            
+                            set {_restockMin} to yaml value "%{_ii}%.min" from "bck.manager.minerooms.data" 
+                            set {_restockMax} to yaml value "%{_ii}%.max" from "bck.manager.minerooms.data" 
+                            set {_restockChance} to yaml value "%{_ii}%.chance" from "bck.manager.minerooms.data"
+                            set {_restockMin} to "%{_restockMin}%" parsed as integer
+                            set {_restockMax} to "%{_restockMax}%" parsed as integer
+                            set {_restockChance} to "%{_restockChance}%" parsed as integer
+                            set {_restockCustomName} to mineroomsServerConfig("%{_ii}%.custom.name")
+                            set {_restockCustomLores::*} to yaml list "%{_ii}%.custom.lores" from "bck.manager.minerooms.data"
+                            set {_item} to {_i}
+                            if {_restockCustomName} is set:
+                                set {_item} to {_i} named {_restockCustomName}
+                            if {_restockCustomLores::*} is set:
+                                set {_b} to 1
+                                loop {_restockCustomLores::*}:
+                                    set {_v} to loop-value-3
+                                    if {_v} contain "<lang:":
+                                        set {_vv::*} to {_v} split by ":"
+                                        set {_k} to {_vv::2}
+                                        replace ">" with "" in {_k}
+                                        set {_v} to lang({_k}, player) 
+                                    set line {_b} of lore of {_item} to {_v}
+                                    add 1 to {_b}
+                            set {_restockCount} to rng({_restockMin}, {_restockMax})
+                            if player cannot hold {_restockCount} of {_item}:
+                                cancel event
+                                stop
                             cancel event
-                            stop
-                        cancel event
-                        chance of {_restockChance}%:
-                            give {_restockCount} of {_item} to player
+                            chance of {_restockChance}%:
+                                give {_restockCount} of {_item} to player
                         set block data of {_b} to note_block[note=10]
                     
     else if {_e} is set:
@@ -1740,151 +1867,113 @@ function mineroomsTravel(player: player, level: number=-1, message: boolean=true
 on chat:
     cancel event
     set {_xc} to false
-    loop all players:
-        set {_x} to loop-player
-        if userData(player, "player.chat") is "default":
+    set {_ww} to "%player's world%"
+    set {_ww::*} to {_ww} split by "_"
+    set {_tg} to {_ww::2}
+    set {_ggggg} to mineroomsDataBoolean("levels.%{_tg}%.chat.status")
+    if mineroomsDataBoolean("levels.%{_tg}%.chat.status") is false:
+        stop
+    if mineroomsDataBoolean("levels.%{_tg}%.chat.proximity") is true:
+        set {_ttt} to mineroomsDataBoolean("levels.%{_tg}%.chat.proximity")
+        set {_vv} to false
+        loop all players:
+            set {_x} to loop-player
             if {_x}'s world is player's world:
-                set {_mb} to mineroomsData("chat.message")
-                set {_rank} to userData(player, "player.rank")
-                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
-                if "%{_rankName}%" is "<none>":
-                    set {_rankName} to ""
-                
-                
-                if {_rankName} contain "§l":
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::2}%"
-                    set {_rankColor} to "%{_rankColor}%§l"
-                else:
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::1}%"
-                set {_mb} to "%{_mb}%"
-                set {_c} to 0
-                add {_rankColor} to {_args::*}
-                add {_rankName} to {_args::*}
-                add player's name to {_args::*}
-                add message to {_args::*}
-                loop {_args::*}:
-                    set {_v} to loop-value-2
-                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
-                    add 1 to {_c}
-                send formatted {_mb} to loop-player
-                send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
-                clear {_args::*}
-        else if userData(player, "player.chat") is "staff":
-            if hasPermission(loop-player, "op"):
-                set {_mb} to mineroomsData("chat.staffMessage")
-                set {_rank} to userData(player, "player.rank")
-                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
-                if "%{_rankName}%" is "<none>":
-                    set {_rankName} to ""
-                if {_rankName} contain "§l":
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::2}%"
-                    set {_rankColor} to "%{_rankColor}%§l"
-                else:
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::1}%"
-                set {_mb} to "%{_mb}%"
-                set {_c} to 0
-                add "🔒" to {_args::*}
-                add {_rankColor} to {_args::*}
-                add {_rankName} to {_args::*}
-                add player's name to {_args::*}
-                add message to {_args::*}
-                loop {_args::*}:
-                    set {_v} to loop-value-2
-                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
-                    add 1 to {_c}
-                send formatted {_mb} to loop-player
-                send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
-                clear {_args::*}
-        else if userData(player, "player.chat") is "all":
-            set {_mb} to mineroomsData("chat.message")
-            set {_rank} to userData(player, "player.rank")
-            set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
-            if "%{_rankName}%" is "<none>":
-                set {_rankName} to ""
-            if {_rankName} contain "§l":
-                set {_cc::*} to {_rankName} split by "§"
-                set {_rankColor} to "§%{_cc::2}%"
-                set {_rankColor} to "%{_rankColor}%§l"
-            else:
-                set {_cc::*} to {_rankName} split by "§"
-                set {_rankColor} to "§%{_cc::1}%"
-            set {_mb} to "%{_mb}%"
-            set {_c} to 0
-            add {_rankColor} to {_args::*}
-            add {_rankName} to {_args::*}
-            add player's name to {_args::*}
-            add message to {_args::*}
-            loop {_args::*}:
-                set {_v} to loop-value-2
-                replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
-                add 1 to {_c}
-            send formatted {_mb} to loop-player
-            send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
-            clear {_args::*}
-        else if userData(player, "player.chat") is "meg":
-            if mineroomsGetRank({_x}) is "meg_member":
-                set {_mb} to mineroomsData("chat.megMessage")
-                set {_rank} to userData(player, "player.rank")
-                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", player)
-                if "%{_rankName}%" is "<none>":
-                    set {_rankName} to ""
-                if {_rankName} contain "§l":
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::2}%"
-                    set {_rankColor} to "%{_rankColor}%§l"
-                else:
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::1}%"
-                set {_mb} to "%{_mb}%"
-                set {_c} to 0
-                add "M.E.G" to {_args::*}
-                add {_rankColor} to {_args::*}
-                add {_rankName} to {_args::*}
-                add player's name to {_args::*}
-                add message to {_args::*}
-                loop {_args::*}:
-                    set {_v} to loop-value-2
-                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
-                    add 1 to {_c}
-                send formatted {_mb} to loop-player
-                send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
-                clear {_args::*}
-        else if "%mineroomsGetLevels(true)%" contain userData(player, "player.chat"):
-            if {_xc} is false:
-                set {_mb} to mineroomsData("chat.levelMessage")
-                set {_rank} to userData(player, "player.rank")
-                set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", player)
-                if "%{_rankName}%" is "<none>":
-                    set {_rankName} to ""
-                if {_rankName} contain "§l":
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::2}%"
-                    set {_rankColor} to "%{_rankColor}%§l"
-                else:
-                    set {_cc::*} to {_rankName} split by "§"
-                    set {_rankColor} to "§%{_cc::1}%"
-                set {_mb} to "%{_mb}%"
-                set {_c} to 0
-                #set {_levelName} to configLang(, {_player})
-                set {_levelName} to userData(player, "player.chat")
-                replace "Niveau_" with "" in {_levelName}
-                add lang("minerooms.command.noClip.levels.%{_levelName}%", player) to {_args::*}
-                add {_rankColor} to {_args::*}
-                add {_rankName} to {_args::*}
-                add player's name to {_args::*}
-                add message to {_args::*}
-                loop {_args::*}:
-                    set {_v} to loop-value-2
-                    replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
-                    add 1 to {_c}
-                send formatted {_mb} to player
-                set {_xc} to true
-                clear {_args::*}
-            if loop-player's world is userData(player, "player.chat"):
+                set {_ggg} to mineroomsDataInteger("levels.%{_tg}%.chat.proximity_range") + 1
+                set {_dis} to distance between the player and {_x}
+                #broadcast "%player's name% / %{_x}'s name% (%{_dis}%)"
+                if distance between the player and {_x} < {_ggg}:
+                    set {_mb} to mineroomsData("chat.message")
+                    set {_rank} to userData(player, "player.rank")
+                    set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+                    if "%{_rankName}%" is "<none>":
+                        set {_rankName} to ""
+                    if {_rankName} contain "§l":
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::2}%"
+                        set {_rankColor} to "%{_rankColor}%§l"
+                    else:
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::1}%"
+                    set {_mb} to "%{_mb}%"
+                    set {_c} to 0
+                    add {_rankColor} to {_args::*}
+                    add {_rankName} to {_args::*}
+                    add player's name to {_args::*}
+                    add message to {_args::*}
+                    loop {_args::*}:
+                        set {_v} to loop-value-2
+                        replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                        add 1 to {_c}
+                    send formatted {_mb} to loop-player
+                    send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                    clear {_args::*}
+    else:
+        loop all players:
+            set {_x} to loop-player
+            set {_ttt} to mineroomsDataBoolean("levels.%{_tg}%.chat.proximity")
+            set {_vv} to false
+            if {_x}'s world is player's world:
+                set {_vv} to true
+            #broadcast "%player's name% => %{_x}'s name% (%{_vv}%)"
+            if userData(player, "player.chat") is "default":
+                if {_x}'s world is player's world:
+                    set {_mb} to mineroomsData("chat.message")
+                    set {_rank} to userData(player, "player.rank")
+                    set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+                    if "%{_rankName}%" is "<none>":
+                        set {_rankName} to ""
+                    
+                    
+                    if {_rankName} contain "§l":
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::2}%"
+                        set {_rankColor} to "%{_rankColor}%§l"
+                    else:
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::1}%"
+                    set {_mb} to "%{_mb}%"
+                    set {_c} to 0
+                    add {_rankColor} to {_args::*}
+                    add {_rankName} to {_args::*}
+                    add player's name to {_args::*}
+                    add message to {_args::*}
+                    loop {_args::*}:
+                        set {_v} to loop-value-2
+                        replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                        add 1 to {_c}
+                    send formatted {_mb} to loop-player
+                    send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                    clear {_args::*}
+            else if userData(player, "player.chat") is "staff":
+                if hasPermission(loop-player, "op"):
+                    set {_mb} to mineroomsData("chat.staffMessage")
+                    set {_rank} to userData(player, "player.rank")
+                    set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+                    if "%{_rankName}%" is "<none>":
+                        set {_rankName} to ""
+                    if {_rankName} contain "§l":
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::2}%"
+                        set {_rankColor} to "%{_rankColor}%§l"
+                    else:
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::1}%"
+                    set {_mb} to "%{_mb}%"
+                    set {_c} to 0
+                    add "🔒" to {_args::*}
+                    add {_rankColor} to {_args::*}
+                    add {_rankName} to {_args::*}
+                    add player's name to {_args::*}
+                    add message to {_args::*}
+                    loop {_args::*}:
+                        set {_v} to loop-value-2
+                        replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                        add 1 to {_c}
+                    send formatted {_mb} to loop-player
+                    send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                    clear {_args::*}
+            else if userData(player, "player.chat") is "all":
                 set {_mb} to mineroomsData("chat.message")
                 set {_rank} to userData(player, "player.rank")
                 set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
@@ -1910,6 +1999,91 @@ on chat:
                 send formatted {_mb} to loop-player
                 send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
                 clear {_args::*}
+            else if userData(player, "player.chat") is "meg":
+                if mineroomsGetRank({_x}) is "meg_member":
+                    set {_mb} to mineroomsData("chat.megMessage")
+                    set {_rank} to userData(player, "player.rank")
+                    set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", player)
+                    if "%{_rankName}%" is "<none>":
+                        set {_rankName} to ""
+                    if {_rankName} contain "§l":
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::2}%"
+                        set {_rankColor} to "%{_rankColor}%§l"
+                    else:
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::1}%"
+                    set {_mb} to "%{_mb}%"
+                    set {_c} to 0
+                    add "M.E.G" to {_args::*}
+                    add {_rankColor} to {_args::*}
+                    add {_rankName} to {_args::*}
+                    add player's name to {_args::*}
+                    add message to {_args::*}
+                    loop {_args::*}:
+                        set {_v} to loop-value-2
+                        replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                        add 1 to {_c}
+                    send formatted {_mb} to loop-player
+                    send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                    clear {_args::*}
+            else if "%mineroomsGetLevels(true)%" contain userData(player, "player.chat"):
+                if {_xc} is false:
+                    set {_mb} to mineroomsData("chat.levelMessage")
+                    set {_rank} to userData(player, "player.rank")
+                    set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", player)
+                    if "%{_rankName}%" is "<none>":
+                        set {_rankName} to ""
+                    if {_rankName} contain "§l":
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::2}%"
+                        set {_rankColor} to "%{_rankColor}%§l"
+                    else:
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::1}%"
+                    set {_mb} to "%{_mb}%"
+                    set {_c} to 0
+                    #set {_levelName} to configLang(, {_player})
+                    set {_levelName} to userData(player, "player.chat")
+                    replace "Niveau_" with "" in {_levelName}
+                    add lang("minerooms.command.noClip.levels.%{_levelName}%", player) to {_args::*}
+                    add {_rankColor} to {_args::*}
+                    add {_rankName} to {_args::*}
+                    add player's name to {_args::*}
+                    add message to {_args::*}
+                    loop {_args::*}:
+                        set {_v} to loop-value-2
+                        replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                        add 1 to {_c}
+                    send formatted {_mb} to player
+                    set {_xc} to true
+                    clear {_args::*}
+                if loop-player's world is userData(player, "player.chat"):
+                    set {_mb} to mineroomsData("chat.message")
+                    set {_rank} to userData(player, "player.rank")
+                    set {_rankName} to lang("minerooms.ranks.%{_rank}%.name", loop-player)
+                    if "%{_rankName}%" is "<none>":
+                        set {_rankName} to ""
+                    if {_rankName} contain "§l":
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::2}%"
+                        set {_rankColor} to "%{_rankColor}%§l"
+                    else:
+                        set {_cc::*} to {_rankName} split by "§"
+                        set {_rankColor} to "§%{_cc::1}%"
+                    set {_mb} to "%{_mb}%"
+                    set {_c} to 0
+                    add {_rankColor} to {_args::*}
+                    add {_rankName} to {_args::*}
+                    add player's name to {_args::*}
+                    add message to {_args::*}
+                    loop {_args::*}:
+                        set {_v} to loop-value-2
+                        replace all "<arg%{_c}%>" with "%{_v}%" in {_mb}
+                        add 1 to {_c}
+                    send formatted {_mb} to loop-player
+                    send formatted "§6[§b%player's world%§6]§r %{_rankName}% %{_mb}%" to console
+                    clear {_args::*}
 function mineroomsNoClip(player: player):
     set {_gui} to genericGui(lang("minerooms.command.noClip.gui.title", {_player}), 5, true)
     set slot 22 of {_gui} to redstone block named "§4Wait.."

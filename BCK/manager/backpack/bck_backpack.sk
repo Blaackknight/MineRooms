@@ -1,0 +1,106 @@
+on load:
+    set {_list::*} to {skripts::*}
+    if {_list::*} contains "bck_backpack.sk":
+        send "§6[§4BCK§6]§r Loading backpack..." to console
+        send "§6[§4BCK§6/§2Backpack§6]§r Loaded successfully !" to console
+        load yaml "plugins/Skript/scripts/BCK/manager/backpack/config.yml" as "bck.manager.backpack.config"
+        load yaml "plugins/Skript/scripts/BCK/manager/backpack/data.yml" as "bck.manager.backpack.data"
+    else:
+        broadcast "§6[§4BCK§6/§2Backpack§6]§r Script loading cancel It require (bck_manager.sk)"
+        unload script file "bck_backpack.sk"
+command /backpack [<number>]:
+    trigger:
+        set {_tier} to arg-1
+        if {_tier} isn't set:
+            set {_tier} to 1
+        set {_i} to yaml value "data.item" from "bck.manager.backpack.config"
+        set {_n} to backpackConfig("data.defaultName")
+        if {_tier} >= 6:
+            set {_xx} to backpackConfig("data.tierU")
+            set {_t} to "%{_xx}% §46"
+        else if {_tier} > 3:
+            set {_xx} to backpackConfig("data.tierU")
+            set {_t} to "%{_xx}% §b%{_tier}%"
+        else:
+            set {_t} to backpackConfig("data.tier%{_tier}%")
+        set {_i} to {_i} parsed as item
+        set {_i} to {_i} named {_n}
+        set line 1 of lore of {_i} to backpackConfig("data.lore")
+        set line 3 of lore of {_i} to {_t}
+        set line 5 of lore of {_i} to "§7%randomUUID()%"
+        set custom model data of {_i} to 10000
+        give {_i} to player
+function backpackGui(player: player, tier: number=1):
+    set {_i} to {_player}'s tool
+    set {_n} to display name of {_i}
+    if "%{_n}%" is "Backpack":
+        set {_gn} to backpackConfig("data.defaultName")
+        set {_gn} to "%{_gn}%" 
+    else:
+        set {_gn} to "§f%{_n}%"
+
+    set {_gui} to genericGui({_gn}, {_tier})
+    set {_inv::*} to yaml list "data.inventory.%{_player}'s uuid%.%backpackGetUUID({_i})%" from "bck.manager.backpack.data"
+    loop {_inv::*}:
+        set {_v} to loop-value
+        add {_v} to {_gui}
+    open {_gui} to {_player}
+    userData({_player}, "data.inv", "set", "bck.manager.backpack.main")
+every tick:
+    loop all players:
+        if userData(loop-player, "data.inv") is "bck.manager.backpack.main":
+            set {_i} to loop-player's tool
+            set {_n} to display name of {_i}
+            set {_gui} to loop-player's current inventory
+            # loop all items of {_gui}:
+            #     set {_v} to loop-value-2
+            #     add {_v} to {_none::*}
+            set {_bid} to backpackGetUUID({_i})
+            #broadcast "%{_bid}%"
+            set yaml list "data.inventory.%loop-player's uuid%.%{_bid}%" from "bck.manager.backpack.data" to all items of {_gui}
+            save yaml "bck.manager.backpack.data"
+            #backpackGui(loop-player, backpackGetTier({_i}))
+on inventory click:
+    if userData(player, "data.inv") is "bck.manager.backpack.main":
+        set {_i} to player's tool
+        set {_n} to display name of {_i}
+        set {_bid} to backpackGetUUID({_i})
+        set {_bidb} to backpackGetUUID(event-slot)
+        if {_bid} is {_bidb}:
+            cancel event
+on click:
+    set {_i} to player's tool
+    set {_lore::*} to uncolored lore of {_i}
+    set {_ii} to yaml value "data.item" from "bck.manager.backpack.config"
+    set {_ii} to {_ii} parsed as item
+    if "%type of {_ii}%" is "%type of {_i}%":
+        if "%{_lore::*}%" contains "Backpack":
+            play sound "item.bundle.insert" with volume 1 with pitch 0 at player's location
+            backpackGui(player, backpackGetTier({_i}))
+on place:
+    set {_i} to player's tool
+    set {_lore::*} to uncolored lore of {_i}
+    set {_ii} to yaml value "data.item" from "bck.manager.backpack.config"
+    set {_ii} to {_ii} parsed as item
+    if "%type of {_ii}%" is "%type of {_i}%":
+        if "%{_lore::*}%" contains "Backpack":
+            cancel event
+            backpackGui(player, backpackGetTier({_i}))
+function backpackConfig(find: text, mode: text="extract", data: text="") :: text:
+    if {_mode} is "extract":
+        set {_result} to yaml value "%{_find}%" from "bck.manager.backpack.config"
+        if {_result} isn't set:
+            if {_data} isn't empty:
+                set {_result} to {_data}
+    else if {_mode} is "delete":
+        set {_result} to yaml value "%{_find}%" from "bck.manager.backpack.config"
+        if {_result} is set:
+            delete yaml value "%{_find}%" from "bck.manager.backpack.config"
+            save yaml "bck.manager.backpack.config"
+        else:
+            set yaml value "%{_find}%" from "bck.manager.backpack.config" to {_data}
+            save yaml "bck.manager.backpack.config"
+    else if {_mode} is "set":
+        set yaml value "%{_find}%" from "bck.manager.backpack.config" to {_data}
+        save yaml "bck.manager.backpack.config"
+    return "%{_result}%"
