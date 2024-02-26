@@ -66,6 +66,8 @@ minerooms:
                 name: "??"
             666: 
                 name: "§0Despair"
+            9999999:
+                name: "§6§k{§r§dTest Zone§6§k}§r"
     command:
         noOption: "§c/<arg0> <option>"
         noSecondOption: "§c/<arg0> <arg1> <option>"
@@ -103,6 +105,7 @@ minerooms:
                 70: "Level_70"
                 99: "Level_99"
                 666: "Level_666"
+                999999: "Level_999999"
         ranks:
             list:
                 gui:
@@ -175,6 +178,16 @@ minerooms:
                     name: "§8Travel blocks"
                     lore: "§dCount: §b<arg0>"
                     title: "§0Travel blocks §1§o(<arg0>)"
+        customRecipes:
+            gui:
+                title: "§0List of custom recipes"
+        backpack:
+            upgradeSuccess: "§6[§aBackpack§6]§r §bUpgrade is §asuccess §e!"
+            missingItem: "§6[§aBackpack§6]§r §cMissing item(s) required §o(<arg0>§c)"
+            alreadyMaxed: "§6[§aBackpack§6]§r §eBackpack §aalready upgraded §eto the §4maximum"
+            tierNotFound: "§6[§aBackpack§6]§r §1Tier §cnot found.."
+            uuidNotFound: "§6[§aBackpack§6]§r §5Uuid §cnot found.."
+            isNotBackpack: "§6[§aBackpack§6]§r §cYour item is not a backpack"
     freeze:
         playerFreeze: "§1You have been freezed :("
         youFreeze: "§6[§eMineRooms§6]§r §eYou just froze §7<arg0>"
@@ -272,6 +285,8 @@ minerooms:
                         - "Nothing"
         666:
             lore:
+        999999:
+            lore:
     wiki:
         book:
             name: "Enculer"
@@ -281,6 +296,8 @@ minerooms:
                 - "Meuuuuuuuuhhhh"
     supply:
         waiting: "§eBox §Awaiting §efor restocking by §1§lM.E.G §e!"
+    backpack:
+        isDisabled: "§6Backpacks §eare §cdisables"
             
 core:
     noPermission: "§c§lHey! §7You don't have permission :|"

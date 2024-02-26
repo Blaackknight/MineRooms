@@ -201,21 +201,6 @@ function bckManagerEditfiles(source: text, find: text="data", mode: text="extrac
 		set yaml value "%{_find}%" from "bck.%{_source}%" to {_data}
 		save yaml "bck.%{_source}%"
 	return {_result}
-function backpackGuiSaver(player: player, gui: inventory):
-    set {_i} to {_player}'s tool
-    set {_storage::*} to items of {_gui}
-    set yaml list "data.inventory.%{_player}'s uuid%.%backpackGetUUID({_i})%" from "bck.manager.backpack.data" to {_storage::*}
-    save yaml "bck.manager.backpack.data"
-function backpackGetTier(item: item) :: number:
-    set {_l} to line 3 of {_item}'s lore
-    set {_l} to uncolored {_l}
-    replace "⇾ Tier: " with "" in {_l}
-    set {_l} to {_l} parsed as number
-    return {_l}
-function backpackGetUUID(item: item) :: string:
-    set {_l} to line 5 of {_item}'s lore
-    set {_l} to uncolored {_l}
-    return {_l}
 on command "/op":
     if player is set:
         if hasPermission(player, "bypass.op", true) is false:

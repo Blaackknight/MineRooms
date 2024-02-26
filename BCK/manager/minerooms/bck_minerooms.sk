@@ -312,6 +312,8 @@ command /minerooms [<text>] [<text>] [<offlineplayer>] [<text>]:
                 send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
                 stop
             mineroomsCustomBlocksGuiMain(player)
+        else if arg-1 is "customRecipes":
+            mineroomsCustomRecipeGuiMain(player)
         else:
             add arg-1 to {_args::*}
             send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
@@ -374,7 +376,7 @@ function mineroomsLoad(callback: boolean=true):
     mineroomsData("chat.megMessage", "set", mineroomsServerConfig("chat.megMessage"))
     mineroomsData("chat.staffMessage", "set", mineroomsServerConfig("chat.staffMessage"))
 
-    mineroomsData("decoCombat.time", "set", mineroomsServerConfig("decoCombat.time"))
+    mineroomsDataInteger("decoCombat.time", "set", mineroomsServerConfigInteger("decoCombat.time"))
 
     mineroomsDataBoolean("supply.status", "set", mineroomsServerConfigBoolean("supply.status"))
     mineroomsDataInteger("supply.minChance", "set", mineroomsServerConfigInteger("supply.minChance"))
@@ -501,6 +503,7 @@ function mineroomsLoad(callback: boolean=true):
         mineroomsData("%loop-value%.chat.proximity_range", "set", "%{_levelChatProximityRange}%")
         mineroomsData("%loop-value%.effect.type", "set", "%{_levelEffectType}%")
         set yaml list "%loop-value%.effect.effects" from "bck.manager.minerooms.data" to  {_levelEffectEffects::*}
+        mineroomsDataBoolean("%loop-value%.mobSpawn.restricted", "set", mineroomsServerConfigBoolean("%loop-value%.mobSpawn.restricted"))
         set yaml list "%loop-value%.mobSpawn.allow" from "bck.manager.minerooms.data" to  {_levelMobSpawnAlloy::*}
         save "bck.manager.minerooms.data"
     
@@ -566,13 +569,53 @@ function mineroomsLoad(callback: boolean=true):
             save "bck.manager.minerooms.data"
             clear {_rank.perms::*}
 
+    mineroomsDataBoolean("backpack.status", "set", mineroomsServerConfigBoolean("backpack.status"))
+    mineroomsDataBoolean("backpack.individual", "set", mineroomsServerConfigBoolean("backpack.individual"))
+    mineroomsDataInteger("backpack.ia_id", "set", mineroomsServerConfigInteger("backpack.ia_id"))
+    loop yaml node keys "backpack" from "bck.server.minerooms.config":
+        add loop-node to {_backpackOption::*}
+    loop {_backpackOption::*}:
+        set {_r} to loop-value
+        set {_rr} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        if {_r} is "upgrade_cost":
+            set {_itemsTier2::*} to yaml list "%{_rr}%.tier_2" from "bck.server.minerooms.config"
+            set {_itemsTier3::*} to yaml list "%{_rr}%.tier_3" from "bck.server.minerooms.config"
+            set {_itemsTier4::*} to yaml list "%{_rr}%.tier_4" from "bck.server.minerooms.config"
+            set {_itemsTier5::*} to yaml list "%{_rr}%.tier_5" from "bck.server.minerooms.config"
+            set {_itemsTier6::*} to yaml list "%{_rr}%.tier_6" from "bck.server.minerooms.config"
+            set yaml list "%{_rr}%.tier_2" from "bck.manager.minerooms.data" to {_itemsTier2::*}
+            set yaml list "%{_rr}%.tier_3" from "bck.manager.minerooms.data" to {_itemsTier3::*}
+            set yaml list "%{_rr}%.tier_4" from "bck.manager.minerooms.data" to {_itemsTier4::*}
+            set yaml list "%{_rr}%.tier_5" from "bck.manager.minerooms.data" to {_itemsTier5::*}
+            set yaml list "%{_rr}%.tier_6" from "bck.manager.minerooms.data" to {_itemsTier6::*}
+            save "bck.manager.minerooms.data"
+    loop yaml node keys "recipe" from "bck.server.minerooms.config":
+        add loop-node to {_recipeList::*}
+    loop {_recipeList::*}:
+        set {_r} to loop-value
+        set {_rr} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        mineroomsData("recipe.%{_r}%.result", "set", mineroomsServerConfig("recipe.%{_r}%.result"))
+        mineroomsData("recipe.%{_r}%.0", "set", mineroomsServerConfig("recipe.%{_r}%.0"))
+        mineroomsData("recipe.%{_r}%.1", "set", mineroomsServerConfig("recipe.%{_r}%.1"))
+        mineroomsData("recipe.%{_r}%.2", "set", mineroomsServerConfig("recipe.%{_r}%.2"))
+        mineroomsData("recipe.%{_r}%.3", "set", mineroomsServerConfig("recipe.%{_r}%.3"))
+        mineroomsData("recipe.%{_r}%.4", "set", mineroomsServerConfig("recipe.%{_r}%.4"))
+        mineroomsData("recipe.%{_r}%.5", "set", mineroomsServerConfig("recipe.%{_r}%.5"))
+        mineroomsData("recipe.%{_r}%.6", "set", mineroomsServerConfig("recipe.%{_r}%.6"))
+        mineroomsData("recipe.%{_r}%.7", "set", mineroomsServerConfig("recipe.%{_r}%.7"))
+        mineroomsData("recipe.%{_r}%.8", "set", mineroomsServerConfig("recipe.%{_r}%.8"))
+        
     loop yaml node keys "rules" from "bck.server.minerooms.config":
         add loop-node to {_rulesList::*}
     loop {_rulesList::*}:
         set {_r} to loop-value
         set {_r::*} to {_r} split by "."
         set {_r} to {_r::2}
-        set {_st} to mineroomsServerConfig("%loop-value%.status")
+        set {_st} to mineroomsServerConfigBoolean("%loop-value%.status")
         coreDataBoolean("%{_r}%.status", "set", {_st})
     wait 5 ticks
     if {_callback} is true:
@@ -596,6 +639,7 @@ on tab complete of "/minerooms" or "/mr":
         add "freeze" to {_data::*}
         add "rlc" to {_data::*}
         add "customBlocks" to {_data::*}
+        add "customRecipes" to {_data::*}
     add "wiki" to {_data::*}
     add "chat" to {_data::*}
     set tab completions for position 1 to {_data::*}
@@ -740,6 +784,117 @@ function mineroomsGiveStartingKit(player: player):
                     set {_c} to 1
                 give {_c} of {_i} to {_player}
                 clear {_i}
+function mineroomsCustomRecipeGuiMain(player: player):
+    loadUserData({_player})
+    set {_gui} to genericGui(lang("minerooms.command.customRecipes.gui.title", {_player}), 5, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.customRecipes.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_slot} to 0
+    loop yaml node keys "recipe" from "bck.manager.minerooms.data":
+        add loop-node to {_recipeList::*}
+    loop {_recipeList::*}:
+        set {_r} to loop-value
+        set {_rr} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_result} to mineroomsData("recipe.%{_r}%.result")
+        if {_result} contain "<custom_item:":
+            set {_resultD::*} to {_result} split by "<custom_item:"
+            set {_ii} to {_resultD::2}
+            replace ">" with "" in {_ii}
+            if {_ii} contain "generic_backpack":
+                set {_data::*} to {_ii} split by "_tier_"
+                set {_tier} to {_data::2} parsed as integer
+                set {_ii} to getGenericBackpack("default", {_tier})
+        else:
+            set {_ii} to {_result} parsed as item
+        set {_n} to nbt compound of {_ii}
+        set string tag "bck;recipe_id" of {_n} to "%{_r}%"
+        set {_count} to 0
+        loop 9 times:
+            set {_it} to mineroomsData("recipe.%{_r}%.%{_count}%")
+            if {_it} contain "<custom_item:":
+                set {_resultD::*} to {_it} split by "<custom_item:"
+                set {_it} to {_resultD::2}
+                replace ">" with "" in {_it}
+                if {_it} contain "generic_backpack":
+                    set {_data::*} to {_it} split by "_tier_"
+                    set {_tier} to {_data::2} parsed as integer
+                    set {_i.%{_count}%} to getGenericBackpack("default", {_tier})
+            else:
+                set {_i.%{_count}%} to {_it} parsed as item
+            add 1 to {_count}
+        set slot {_slot} of {_gui} to {_ii}
+        add 1 to {_slot}
+    userData({_player}, "data.inv", "set", "manager.minerooms.customRecipes.main")
+function mineroomsCustomRecipeGuiAnyMain(player: player, item: item):
+    loadUserData({_player})
+    set {_id} to backpackGetRecipeId({_item})
+    set {_name} to {_item}'s display name
+    if "%{_name}%" is "<none>":
+        set {_name} to "%{_id}%"
+    else:
+        set {_name} to "%{_name}% §7§o(%{_id}%)"
+    set {_gui} to genericGui("%{_name}%", 5, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.customRecipes.any_recipe.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_base} to -1
+    loop 44 times:
+        
+        if {_base} is 11 or 20 or 29:
+            add 3 to {_base}
+        else if {_base} is 24 or 40:
+            add 1 to {_base}
+        set slot {_base} of {_gui} to random element of stained glass panes named "§l"
+        add 1 to {_base}
+    loop yaml node keys "recipe" from "bck.manager.minerooms.data":
+        add loop-node to {_recipeList::*}
+    loop {_recipeList::*}:
+        set {_r} to loop-value
+        set {_rr} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        if {_r} is {_id}:
+            set {_result} to mineroomsData("recipe.%{_r}%.result")
+            if {_result} contain "<custom_item:":
+                set {_resultD::*} to {_result} split by "<custom_item:"
+                set {_ii} to {_resultD::2}
+                replace ">" with "" in {_ii}
+                if {_ii} contain "generic_backpack":
+                    set {_data::*} to {_ii} split by "_tier_"
+                    set {_tier} to {_data::2} parsed as integer
+                    set {_ii} to getGenericBackpack("default", {_tier})
+            else:
+                set {_ii} to {_result} parsed as item
+            set {_count} to 0
+            set {_slot} to 11
+            loop 9 times:
+                if {_slot} is 14 or 23:
+                    add 6 to {_slot}
+                set {_it} to mineroomsData("recipe.%{_r}%.%{_count}%")
+                if {_it} contain "<custom_item:":
+                    set {_resultD::*} to {_it} split by "<custom_item:"
+                    set {_it} to {_resultD::2}
+                    replace ">" with "" in {_it}
+                    if {_it} contain "generic_backpack":
+                        set {_data::*} to {_it} split by "_tier_"
+                        set {_tier} to {_data::2} parsed as integer
+                        set {_i.%{_count}%} to getGenericBackpack("default", {_tier})
+                else:
+                    set {_i.%{_count}%} to {_it} parsed as item
+                if {_i.%{_count}%} is air:
+                    set {_i.%{_count}%} to white glass pane named {_it}
+                else if {_i.%{_count}%} is not set:
+                    set {_i.%{_count}%} to white glass pane named "§m%{_it}%"
+                set slot {_slot} of {_gui} to {_i.%{_count}%}
+                add 1 to {_count}
+                add 1 to {_slot}
+            set slot 24 of {_gui} to {_ii}   
+    userData({_player}, "data.inv", "set", "manager.minerooms.customRecipes.any_recipe.main")         
 on right click:
     set {_b} to event-block
     if "%type of {_b}%" contain "chest" or "shulker box" or "barrel":
@@ -1228,7 +1383,31 @@ on inventory click:
         if "%{_t}%" contain "barrier":
             if {_u} contain "Back":
                 mineroomsCustomBlocksGuiMain(player)
-    else if userData(player, "data.inv") is "manager.minerooms.manage.main":
+    else if userData(player, "data.inv") is "manager.minerooms.customRecipes.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                close player's inventory
+        else if {_i} is not air:
+            mineroomsCustomRecipeGuiAnyMain(player, {_i})
+    else if userData(player, "data.inv") is "manager.minerooms.customRecipes.any_recipe.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsCustomRecipeGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.customBlock.main":
         cancel event
         set {_gui} to player's current inventory
         set {_i} to event-slot
@@ -1562,23 +1741,24 @@ on spawn:
     set {_e} to event-entity
     set {_name} to "%event-world%"
     replace "Niveau_" with "" in {_name}
-    set {_a::*} to yaml list "levels.%{_name}%.mobSpawn.alloy" from "bck.manager.minerooms.data"
-    set {_t} to "%type of {_e}%"
-    if {_t} contain "dropped":
-        stop
-    if {_t} contain "painting":
-        stop
-    if {_t} contain "item frame":
-        stop
-    if {_t} contain "armor stand":
-        stop
-    if {_t} contain "falling":
-        stop
-    if {_t} contain "block display":
-        stop
-    replace all "_" with " " in {_t}
-    if {_a::*} doesn't contain "%{_t}%":
-        cancel event
+    if mineroomsDataBoolean("levels.%{_name}%.mobSpawn.restricted") is true:
+        set {_a::*} to yaml list "levels.%{_name}%.mobSpawn.alloy" from "bck.manager.minerooms.data"
+        set {_t} to "%type of {_e}%"
+        if {_t} contain "dropped":
+            stop
+        if {_t} contain "painting":
+            stop
+        if {_t} contain "item frame":
+            stop
+        if {_t} contain "armor stand":
+            stop
+        if {_t} contain "falling":
+            stop
+        if {_t} contain "block display":
+            stop
+        replace all "_" with " " in {_t}
+        if {_a::*} doesn't contain "%{_t}%":
+            cancel event
         #broadcast "%type of {_e}% => §ccancelled"
 on right click:
     set {_e} to event-entity
@@ -2683,6 +2863,9 @@ on damage:
         stop
     if "%attacker's gamemode%" is not "creative":
         set {_x} to mineroomsData("levels.%{_name}%.decoCombat")
+        if mineroomsDataBoolean("levels.%{_name}%.pvp") is false:
+            cancel event
+            stop
         if "%type of victim%" is "player":
             if mineroomsData("levels.%{_name}%.decoCombat") is "false":
                 userData(attacker, "player.temp.decoCombat.active", "set", "true")

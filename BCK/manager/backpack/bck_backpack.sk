@@ -5,42 +5,179 @@ on load:
         send "§6[§4BCK§6/§2Backpack§6]§r Loaded successfully !" to console
         load yaml "plugins/Skript/scripts/BCK/manager/backpack/config.yml" as "bck.manager.backpack.config"
         load yaml "plugins/Skript/scripts/BCK/manager/backpack/data.yml" as "bck.manager.backpack.data"
+        recipesRegister()
     else:
         broadcast "§6[§4BCK§6/§2Backpack§6]§r Script loading cancel It require (bck_manager.sk)"
         unload script file "bck_backpack.sk"
-command /backpack [<number>]:
+command /backpack [<string>]:
     trigger:
-        set {_tier} to arg-1
-        if {_tier} isn't set:
-            set {_tier} to 1
-        set {_i} to yaml value "data.item" from "bck.manager.backpack.config"
-        set {_n} to backpackConfig("data.defaultName")
-        if {_tier} >= 6:
-            set {_xx} to backpackConfig("data.tierU")
-            set {_t} to "%{_xx}% §46"
-        else if {_tier} > 3:
-            set {_xx} to backpackConfig("data.tierU")
-            set {_t} to "%{_xx}% §b%{_tier}%"
+        if arg-1 is "list":
+            if hasPermission(player, "op") is false:
+                add arg-1 to {_args::*}
+                send formatted superLang("minerooms.command.unknownOption", player, {_args::*}) to player
+                stop
+            loop getBackpacksList():
+                set {_uuid} to loop-value
+
+            #broadcast "%getBackpacksList()%"
+        else if arg-1 is "upgrade":
+            set {_i} to player's tool
+            set {_tier} to backpackGetTier({_i})
+            set {_uuid} to backpackGetUUID({_i})
+            if {_tier} and {_uuid} is set:
+                set {_tierA} to {_tier}+1
+                if {_tierA} < 7:
+                    set {_verif} to 0
+                    loop yaml node keys "backpack" from "bck.server.minerooms.config":
+                        add loop-node to {_backpackOption::*}
+                    set {_txt} to ""
+                    loop {_backpackOption::*}:
+                        set {_r} to loop-value
+                        set {_rr} to loop-value
+                        set {_r::*} to {_r} split by "."
+                        set {_r} to {_r::2}
+                        if {_r} is "upgrade_cost":
+                            set {_itemsTier%{_tierA}%::*} to yaml list "%{_rr}%.tier_%{_tierA}%" from "bck.server.minerooms.config"
+                            set {_itemCount} to listCounter({_itemsTier%{_tierA}%::*})
+                            loop {_itemsTier%{_tierA}%::*}:
+                                set {_vv} to loop-value-2
+                                set {_data::*} to {_vv} split by "|"
+                                set {_ii} to {_data::1}
+                                replace all "_" with " " in {_ii}
+                                set {_ii} to {_ii} parsed as item
+                                set {_cc} to {_data::2} parsed as integer
+                                if {_cc} is not set:
+                                    set {_cc} to 1
+                                if player's inventory has {_cc} of {_ii}:
+                                    add 1 to {_verif}
+                                else:
+                                    remove 1 from {_verif}
+                                    set {_coverted} to convertSkriptToMinecraftString("%{_ii}%")
+                                    if {_txt} is "":
+                                        
+                                        set {_txt} to "§b%{_coverted}%§ex§d%{_cc}%§r"
+                                    else:
+                                        set {_txt} to "%{_txt}%, §b%{_coverted}%§ex§d%{_cc}%§r"
+                    if {_verif} = {_itemCount}:
+                        loop {_itemsTier%{_tierA}%::*}:
+                            set {_vv} to loop-value
+                            set {_data::*} to {_vv} split by "|"
+                            set {_it} to {_data::1}
+                            replace all "_" with " " in {_it}
+                            set {_it} to {_it} parsed as item
+                            set {_cc} to {_data::2} parsed as integer
+                            remove {_cc} of {_it} from player's inventory
+                        set {_t} to nbt compound of player's tool
+                        set byte tag "bck;tier" of {_t} to {_tierA}
+                        send formatted superLang("minerooms.command.backpack.upgradeSuccess", player, {_tt::*}) to player
+                    else:
+                        add {_txt} to {_tg::*}
+                        send formatted superLang("minerooms.command.backpack.missingItem", player, {_tg::*}) to player
+                else:
+                    send formatted superLang("minerooms.command.backpack.alreadyMaxed", player, {_tt::*}) to player
+            else if {_tier} is set:
+                send formatted superLang("minerooms.command.backpack.tierNotFound", player, {_tt::*}) to player
+            else if {_uuid} is set:
+                send formatted superLang("minerooms.command.backpack.uuidNotFound", player, {_tt::*}) to player
+            else:
+                send formatted superLang("minerooms.command.backpack.isNotBackpack", player, {_tt::*}) to player
         else:
-            set {_t} to backpackConfig("data.tier%{_tier}%")
-        set {_i} to {_i} parsed as item
-        set {_i} to {_i} named {_n}
-        set line 1 of lore of {_i} to backpackConfig("data.lore")
-        set line 3 of lore of {_i} to {_t}
-        set line 5 of lore of {_i} to "§7%randomUUID()%"
-        set custom model data of {_i} to 10000
-        give {_i} to player
-function backpackGui(player: player, tier: number=1):
+            set {_tier} to arg-1 parsed as integer
+            if {_tier} isn't set:
+                set {_tier} to 1
+            give getGenericBackpack("default", {_tier}) to player
+on tab complete of "/backpack":
+    if hasPermission(player, "server.command.minerooms") is false:
+        stop
+    if hasPermission(player, "op") is true:
+        add "list" to {_data::*}
+        loop 6 times:
+            add "%loop-number%" to {_data::*}
+    add "upgrade" to {_data::*}
+    set tab completions for position 1 to {_data::*}
+function recipesRegister():
+    loop yaml node keys "recipe" from "bck.manager.minerooms.data":
+        add loop-node to {_recipeList::*}
+    loop {_recipeList::*}:
+        set {_r} to loop-value
+        set {_rr} to loop-value
+        set {_r::*} to {_r} split by "."
+        set {_r} to {_r::2}
+        set {_result} to mineroomsData("recipe.%{_r}%.result")
+        if {_result} contain "<custom_item:":
+            set {_resultD::*} to {_result} split by "<custom_item:"
+            set {_ii} to {_resultD::2}
+            replace ">" with "" in {_ii}
+            if {_ii} contain "generic_backpack":
+                set {_data::*} to {_ii} split by "_tier_"
+                set {_tier} to {_data::2} parsed as integer
+                set {_ii} to getGenericBackpack("default", {_tier})
+        else:
+            set {_ii} to {_result} parsed as item
+        set {_count} to 0
+        loop 9 times:
+            set {_it} to mineroomsData("recipe.%{_r}%.%{_count}%")
+            if {_it} contain "<custom_item:":
+                set {_resultD::*} to {_it} split by "<custom_item:"
+                set {_it} to {_resultD::2}
+                replace ">" with "" in {_it}
+                if {_it} contain "generic_backpack":
+                    set {_data::*} to {_it} split by "_tier_"
+                    set {_tier} to {_data::2} parsed as integer
+                    set {_i.%{_count}%} to getGenericBackpack("default", {_tier})
+            else:
+                set {_i.%{_count}%} to {_it} parsed as item
+            add 1 to {_count}
+        register new shaped recipe for {_ii} using {_i.0}, {_i.1}, {_i.2}, {_i.3}, {_i.4}, {_i.5}, {_i.6}, {_i.7} and {_i.8} with id "minerooms:%{_r}%"
+every 1 tick:
+    loop all players:
+        if loop-player's inventory contain white wool:
+            discover recipe "minerooms:backpack_tier_1" for loop-player
+function getBackpacksList() :: objects:
+    loop yaml node keys "data" from "bck.manager.backpack.data":
+        add loop-node to {_backpacks::*}
+    loop {_backpacks::*}:
+        set {_r} to loop-value
+        loop yaml node keys "%{_r}%" from "bck.manager.backpack.data":
+            set {_n} to "%loop-node%"
+            replace "%{_r}%." with "" in {_n}
+            add {_n} to {_backpacksUuid::*}
+    return {_backpacksUuid::*}
+
+function getGenericBackpack(name: string="default", tier: integer=1) :: item:
+    set {_backpack} to yaml value "data.item" from "bck.manager.backpack.config"
+    if {_name} is "default":
+        set {_name} to backpackConfig("data.defaultName")
+    set {_backpack} to {_backpack} parsed as item
+    set {_backpack} to {_backpack} named {_name}
+    set {_n} to nbt compound of {_backpack}
+    set string tag "bck;uuid" of {_n} to randomUUID()
+    set byte tag "bck;tier" of {_n} to {_tier}
+    set string tag "itemsadder;id" of {_n} to "backpack"
+    set string tag "itemsadder;namespace" of {_n} to "minerooms"
+    set {_x::*} to {_id} and {_namespace}
+    #set compound list tag "itemsadder" of {_n} to {_x::*}
+    set int tag "HideFlags" of {_n} to 64
+    set int tag "display;color" of {_n} to 16777215
+    #set string tag "namespace" of {_n} to {_namespace}
+    set custom model data of {_backpack} to mineroomsDataInteger("backpack.ia_id")
+    return {_backpack}
+function backpackGui(player: player):
     set {_i} to {_player}'s tool
     set {_n} to display name of {_i}
+    if {_n} is not set:
+        set {_n} to convertSkriptToMinecraftString("%type of {_i}%")
     if "%{_n}%" is "Backpack":
         set {_gn} to backpackConfig("data.defaultName")
-        set {_gn} to "%{_gn}%" 
+        set {_gn} to "%{_wwwgn}%" 
     else:
         set {_gn} to "§f%{_n}%"
-
+    set {_tier} to backpackGetTier({_i})
     set {_gui} to genericGui({_gn}, {_tier})
-    set {_inv::*} to yaml list "data.inventory.%{_player}'s uuid%.%backpackGetUUID({_i})%" from "bck.manager.backpack.data"
+    if mineroomsDataBoolean("backpack.individual") is true:
+        set {_inv::*} to yaml list "data.inventory.%{_player}'s uuid%.%backpackGetUUID({_i})%" from "bck.manager.backpack.data"
+    else:
+        set {_inv::*} to yaml list "data.inventory.%backpackGetUUID({_i})%" from "bck.manager.backpack.data"
     loop {_inv::*}:
         set {_v} to loop-value
         add {_v} to {_gui}
@@ -57,8 +194,12 @@ every tick:
             #     add {_v} to {_none::*}
             set {_bid} to backpackGetUUID({_i})
             #broadcast "%{_bid}%"
-            set yaml list "data.inventory.%loop-player's uuid%.%{_bid}%" from "bck.manager.backpack.data" to all items of {_gui}
-            save yaml "bck.manager.backpack.data"
+            if mineroomsDataBoolean("backpack.individual") is true:
+                set yaml list "data.inventory.%loop-player's uuid%.%{_bid}%" from "bck.manager.backpack.data" to all items of {_gui}
+                save yaml "bck.manager.backpack.data"
+            else:
+                set yaml list "data.inventory.%{_bid}%" from "bck.manager.backpack.data" to all items of {_gui}
+                save yaml "bck.manager.backpack.data"
             #backpackGui(loop-player, backpackGetTier({_i}))
 on inventory click:
     if userData(player, "data.inv") is "bck.manager.backpack.main":
@@ -73,19 +214,40 @@ on click:
     set {_lore::*} to uncolored lore of {_i}
     set {_ii} to yaml value "data.item" from "bck.manager.backpack.config"
     set {_ii} to {_ii} parsed as item
-    if "%type of {_ii}%" is "%type of {_i}%":
-        if "%{_lore::*}%" contains "Backpack":
-            play sound "item.bundle.insert" with volume 1 with pitch 0 at player's location
-            backpackGui(player, backpackGetTier({_i}))
+    if mineroomsDataBoolean("backpack.status") is false:
+        send actionbar lang("minerooms.backpack.isDisabled", player) to player
+        stop
+    #if "%type of {_ii}%" is "%type of {_i}%":
+    if backpackGetUUID({_i}) is set:
+        play sound "item.bundle.insert" with volume 1 with pitch 0 at player's location
+        backpackGui(player)
 on place:
     set {_i} to player's tool
     set {_lore::*} to uncolored lore of {_i}
     set {_ii} to yaml value "data.item" from "bck.manager.backpack.config"
     set {_ii} to {_ii} parsed as item
+    if mineroomsDataBoolean("backpack.status") is false:
+        send actionbar lang("minerooms.backpack.isDisabled", player) to player
+        stop
     if "%type of {_ii}%" is "%type of {_i}%":
         if "%{_lore::*}%" contains "Backpack":
             cancel event
-            backpackGui(player, backpackGetTier({_i}))
+            backpackGui(player)
+function backpackGuiSaver(player: player, gui: inventory):
+    set {_i} to {_player}'s tool
+    set {_storage::*} to items of {_gui}
+    set yaml list "data.inventory.%{_player}'s uuid%.%backpackGetUUID({_i})%" from "bck.manager.backpack.data" to {_storage::*}
+    save yaml "bck.manager.backpack.data"
+function backpackGetTier(item: item) :: number:
+    set {_tier} to byte tag "bck;tier" of nbt compound of {_item}
+    return {_tier}
+function backpackGetUUID(item: item) :: string:
+    set {_n} to nbt compound of {_item}
+    set {_uuid} to string tag "bck;uuid" of nbt compound of {_item}
+    return {_uuid}
+function backpackGetRecipeId(item: item) :: string:
+    set {_recipId} to string tag "bck;recipe_id" of nbt compound of {_item}
+    return {_recipId}
 function backpackConfig(find: text, mode: text="extract", data: text="") :: text:
     if {_mode} is "extract":
         set {_result} to yaml value "%{_find}%" from "bck.manager.backpack.config"

@@ -66,6 +66,8 @@ minerooms:
                 name: "??"
             666: 
                 name: "§0Désespoir"
+            999999:
+                name: "§6§k{§r§dZone de Test§6§k}§r"
     command:
         noOption: "§c/<arg0> <option>"
         noSecondOption: "§c/<arg0> <arg1> <option>"
@@ -103,6 +105,7 @@ minerooms:
                 70: "Niveau_70"
                 99: "Niveau_99"
                 666: "Niveau_666"
+                999999: "Niveau_999999"
         ranks:
             list:
                 gui:
@@ -175,6 +178,16 @@ minerooms:
                     name: "§8Blocs de voyage"
                     lore: "§dNombre: §b<arg0>"
                     title: "§0Blocs de voyage §1§o(<arg0>)"
+        customRecipes:
+            gui:
+                title: "§0Liste des recettes personnalisés"
+        backpack:
+            upgradeSuccess: "§6[§aBackpack§6]§r §bL'amélioration est une §aréussite §e!"
+            missingItem: "§6[§aBackpack§6]§r §cObjet(s) manquant(s) nécéssaire §o(<arg0>§c)"
+            alreadyMaxed: "§6[§aBackpack§6]§r §eSac à dos §adéjà amélioré §eaux §4maximum"
+            tierNotFound: "§6[§aBackpack§6]§r §1Tier §cintrouvable.."
+            uuidNotFound: "§6[§aBackpack§6]§r §5Uuid §cintrouvable.."
+            isNotBackpack: "§6[§aBackpack§6]§r §cVotre objet n'est pas un sac à dos"
     freeze:
         playerFreeze: "§1You have been freezed :("
         youFreeze: "§6[§eMineRooms§6]§r §eYou just froze §7<arg0>"
@@ -273,6 +286,8 @@ minerooms:
                         - "Rien"
         666:
             lore:
+        9999999:
+            lore:
     wiki:
         book:
             name: "Enculer"
@@ -282,6 +297,8 @@ minerooms:
                 - "Meuuuuuuuuhhhh"
     supply:
         waiting: "§eCaisse en §battente §ede réapprovisionnement par le §1§lM.E.G §e!"
+    backpack:
+        isDisabled: "§eLes §6sacs à dos §esont §cdésactivé"
 
 
 
