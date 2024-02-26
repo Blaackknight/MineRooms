@@ -1049,3 +1049,9 @@ function getTempCoordinate(player: player, block: block) :: location:
 
             #replace all "'" by "" in {_w}
             #broadcast "§1%{_x}% §2%{_y}% §3%{_z}% §4%{_w}%"
+function getRandomGlassPaneWithouted(color: string) :: item:
+    loop stained glass panes:
+        set {_v} to loop-value
+        if "%{_v}%" doesn't contain {_color}:
+            add loop-value to {_b::*}
+    return random element of {_b::*}

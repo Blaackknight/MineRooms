@@ -1,5 +1,6 @@
 options:
     configFileLocation: "plugins/MineRooms/config.yml"
+    configBetaFileLocation: "plugins/MineRooms/beta_config.yml"
 on load:
     if {skripts::*} contains "bck_minerooms.sk":
         send "§6[§4BCK§6]§r Loading minerooms..." to console
@@ -9,6 +10,8 @@ on load:
         load yaml "plugins/Skript/scripts/BCK/manager/minerooms/data.yml" as "bck.manager.minerooms.data"
         load yaml "plugins/Skript/scripts/BCK/manager/minerooms/bdd.yml" as "bck.manager.minerooms.bdd"
         mineroomsLoad()
+        wait 1 tick
+        mineroomsBetaLoad()
         add "default" to {mr.chats::*}
         add "all" to {mr.chats::*}
         add "meg" to {mr.chats::*}
@@ -620,7 +623,67 @@ function mineroomsLoad(callback: boolean=true):
     wait 5 ticks
     if {_callback} is true:
         superLog("§6[§4BCK§6/§eMineRooms§6]§r §eConfig has been §aupdated §e!", "6.4")
-
+#                                      mineroomsLoad functions                                                                          #
+function mineroomsBetaLoad(callback: boolean=true):
+    set {_data::*} to yaml list "data.minerooms.load.options" from "bck.manager.minerooms.config"
+    if file {@configBetaFileLocation} doesn't exist:
+        if {_callback} is true:
+            superLog("§6[§4BCK§6/§eMineRooms§6]§r §5Beta §eInitialization..", "6")
+        create script "plugins/MineRooms/config.yml"
+        write "##                                                                                                                              " at line 1 to file {@configBetaFileLocation}
+        write "##                   ,,                                                                                 " at line 2 to file {@configBetaFileLocation}
+        write "## `7MMM.     ,MMF'  db                          `7MM""""Mq.                                             " at line 3 to file {@configBetaFileLocation}
+        write "##   MMMb    dPMM                                  MM   `MM.                                            " at line 4 to file {@configBetaFileLocation}
+        write "##   M YM   ,M MM  `7MM  `7MMpMMMb.  .gP""Ya        MM   ,M9  ,pW""Wq.   ,pW""Wq.`7MMpMMMb.pMMMb.  ,pP""Ybd " at line 5 to file {@configBetaFileLocation}
+        write "##   M  Mb  M' MM    MM    MM    MM ,M'   Yb       MMmmdM9  6W'   `Wb 6W'   `Wb MM    MM    MM  8I   `"" " at line 6 to file {@configBetaFileLocation}
+        write "##   M  YM.P'  MM    MM    MM    MM 8M""""""       MM  YM.  8M     M8 8M     M8 MM    MM    MM  `YMMMa. " at line 7 to file {@configBetaFileLocation}
+        write "##   M  `YM'   MM    MM    MM    MM YM.    ,       MM   `Mb.YA.   ,A9 YA.   ,A9 MM    MM    MM  L.   I8 " at line 8 to file {@configBetaFileLocation}
+        write "## .JML. `'  .JMML..JMML..JMML  JMML.`Mbmmd'     .JMML. .JMM.`Ybmd9'   `Ybmd9'.JMML  JMML  JMML.M9mmmP' " at line 9 to file {@configBetaFileLocation}
+        write "" at line 10 to file {@configBetaFileLocation}
+        write "##   ___           ___ _            _    _          _       _     _   " at line 11 to file {@configBetaFileLocation}
+        write "##  / __\_   _    / __\ | __ _  ___| | _| | ___ __ (_) __ _| |__ | |_ " at line 12 to file {@configBetaFileLocation}
+        write "## /__\// | | |  /__\// |/ _` |/ __| |/ / |/ / '_ \| |/ _` | '_ \| __|" at line 13 to file {@configBetaFileLocation}
+        write "##/ \/  \ |_| | / \/  \ | (_| | (__|   <|   <| | | | | (_| | | | | |_ " at line 14 to file {@configBetaFileLocation}
+        write "##\_____/\__, | \_____/_|\__,_|\___|_|\_\_|\_\_| |_|_|\__, |_| |_|\__|" at line 15 to file {@configBetaFileLocation}
+        write "##       |___/                                        |___/           " at line 16 to file {@configBetaFileLocation}
+        write "" at line 17 to file {@configBetaFileLocation}
+        set {_x} to 18
+        set {_c} to listCounter({_data::*})
+        loop {_data::*}:
+            write loop-value at line {_x} to file {@configBetaFileLocation}
+            add 1 to {_x}
+        wait 2 ticks
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §5Beta §eInitialization §nComplete§r§e !", "6.4")
+    wait 2 ticks
+    load yaml {@configBetaFileLocation} as "bck.server.minerooms.beta_config"
+    if {_callback} is true:
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §aLoaded §5beta file §asucceffully !", "6.4")
+    wait 1 ticks
+    loop yaml node keys "" from "bck.server.minerooms.config":
+        add loop-node to {_betas::*}
+    # loop {_betas::*}:
+    #     set {_v.1} to mineroomsServerConfig("%loop-value%")
+    #     if {_v.1} is set:
+    #         mineroomsBetaData("%loop-value%", "set", {_v.1})
+    #         broadcast "§5##1 §b%{_v.1}% §7§o(%loop-value%)"
+    #     loop yaml node keys loop-value from "bck.server.minerooms.config":
+    #         set {_v.2} to mineroomsServerConfig("%loop-value%")
+    #         if {_v.2} is set:
+    #             mineroomsBetaData("%loop-value-1%.%loop-value-2%", "set", {_v.2})
+    #             broadcast "§5##2 §b%loop-value-1%.%loop-value-2%"
+    #         loop yaml node keys "%loop-value-1%.%loop-value-2%" from "bck.server.minerooms.config":
+    #             broadcast "§5##3 §b%loop-value-1%.%loop-value-2%.%loop-value-3%"
+    #             loop yaml node keys "%loop-value-1%.%loop-value-2%.%loop-value-3%" from "bck.server.minerooms.config":
+    #                 broadcast "§5##4 §b%loop-value-1%.%loop-value-2%.%loop-value-3%.%loop-value-4%"
+    #                 loop yaml node keys "%loop-value-1%.%loop-value-2%.%loop-value-3%.%loop-value-4%" from "bck.server.minerooms.config":
+    #                     broadcast "§5##5 §b%loop-value-1%.%loop-value-2%.%loop-value-3%.%loop-value-4%.%loop-value-5%"
+    #                     loop yaml node keys "%loop-value-1%.%loop-value-2%.%loop-value-3%.%loop-value-4%.%loop-value-5%" from "bck.server.minerooms.config":
+    #                         broadcast "§5##6 §b%loop-value-1%.%loop-value-2%.%loop-value-3%.%loop-value-4%.%loop-value-5%.%loop-value-6%"
+    #                         loop yaml node keys "%loop-value-1%.%loop-value-2%.%loop-value-3%.%loop-value-4%.%loop-value-5%.%loop-value-6%" from "bck.server.minerooms.config":
+    #                             broadcast "§5##7 §b%loop-value-1%.%loop-value-2%.%loop-value-3%.%loop-value-4%.%loop-value-5%.%loop-value-6%.%loop-value-7%"
+    wait 5 ticks
+    if {_callback} is true:
+        superLog("§6[§4BCK§6/§eMineRooms§6]§r §5Beta Config §ehas been §aupdated §e!", "6.4")
 #                                      tab complete minerooms                                                                          #
 on tab complete of "/minerooms" or "/mr":
     if hasPermission(player, "server.command.minerooms") is false:
@@ -849,7 +912,7 @@ function mineroomsCustomRecipeGuiAnyMain(player: player, item: item):
             add 3 to {_base}
         else if {_base} is 24 or 40:
             add 1 to {_base}
-        set slot {_base} of {_gui} to random element of stained glass panes named "§l"
+        set slot {_base} of {_gui} to getRandomGlassPaneWithouted("white") named "§l"
         add 1 to {_base}
     loop yaml node keys "recipe" from "bck.manager.minerooms.data":
         add loop-node to {_recipeList::*}
@@ -1004,6 +1067,8 @@ on damage:
     if userData(victim, "player.vanish") is "true":
         cancel event
 on join:
+    wait 1 tick
+    loadUserData(player)
     if mineroomsGetRank(player) is "<none>":
         mineroomsSetRank(player, "wanderer", true)
     else if "%mineroomsGetAllRanks()%" doesn't contain userData(player, "player.rank"):
@@ -1505,10 +1570,14 @@ on first join:
         clear {_args::*}
     make console execute command "/team join wanderer %player's name%"
     wait 2 seconds
-    set player's helmet to golden helmet
-    set player's chestplate to golden chestplate
-    set player's leggings to golden leggings
-    set player's boots to golden boots
+    set {_helmet} to unbreakable golden helmet
+    set {_chestplate} to unbreakable golden helmet
+    set {_leggings} to unbreakable golden helmet
+    set {_boots} to unbreakable golden helmet
+    set player's helmet to {_helmet}
+    set player's chestplate to {_chestplate}
+    set player's leggings to {_leggings}
+    set player's boots to {_boots}
     mineroomsGiveStartingKit(player)
     wait 1 seconds
     mineroomsTravel(player, 0, true)
@@ -2417,6 +2486,17 @@ on inventory click:
         if "%{_t}%" contain "barrier":
             if {_u} contain "Back":
                 close player's inventory
+    else if userData(player, "data.inv") is "manager.minerooms.duel.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                close player's inventory
 function mineroomsGetLevel(player: player, num: number=-1, def: boolean=false) :: text:
     if "%{_num}%" contain ".":
         set {_num} to "%{_num}%"
@@ -2908,3 +2988,45 @@ on block interact:
     if "%event-block%" contain "farmland":
         if mineroomsData("levels.%{_name}%.cropTrample") is "false":
             cancel event
+function mineroomsBetaData(find: text, mode: text="extract", data: text="") :: text:
+    if {_mode} is "extract":
+        set {_result} to yaml value "%{_find}%" from "bck.manager.minerooms.beta_data"
+        if {_result} isn't set:
+            if {_data} isn't empty:
+                set {_result} to {_data}
+    else if {_mode} is "delete":
+        set {_result} to yaml value "%{_find}%" from "bck.manager.minerooms.beta_data"
+        if {_result} is set:
+            delete yaml value "%{_find}%" from "bck.manager.minerooms.beta_data"
+            save yaml "bck.manager.minerooms.beta_data"
+        else:
+            set yaml value "%{_find}%" from "bck.manager.minerooms.beta_data" to {_data}
+            save yaml "bck.manager.minerooms.beta_data"
+    else if {_mode} is "set":
+        set yaml value "%{_find}%" from "bck.manager.minerooms.beta_data" to {_data}
+        save yaml "bck.manager.minerooms.beta_data"
+    return "%{_result}%"
+function mineroomsDuelGuiMain(player: player, target: player):
+    loadUserData({_player})
+    set {_gui} to genericGui(lang("minerooms.duel.gui.title", {_player}), 3, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_amical_duel} to iron sword named lang("minerooms.duel.gui.amical.name", {_player})
+    set line 2 of lore of {_amical_duel} to lang("minerooms.duel.gui.amical.lore", {_player})
+    set {_amical_duelTag} to nbt compound of {_amical_duel}
+    set string tag "target_uuid" of {_amical_duelTag} to {_target}'s uuid
+    set {_death_duel} to iron sword named lang("minerooms.duel.gui.death.name", {_player})
+    set line 2 of lore of {_death_duel} to lang("minerooms.duel.gui.death.lore", {_player})
+    set {_death_duelTag} to nbt compound of {_death_duel}
+    set string tag "target_uuid" of {_death_duelTag} to {_target}'s uuid
+    set slot 12 of {_gui} to {_amical_duel}
+    set slot 14 of {_gui} to {_death_duel}
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.main")
+on right click on entity:
+    set {_e} to event-entity
+    if player is sneaking:
+        if name of event-world is "Niveau_404":
+            if "%type of {_e}%" is "player":
+                mineroomsDuelGuiMain(player, {_e})

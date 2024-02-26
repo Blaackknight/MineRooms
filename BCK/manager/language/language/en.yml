@@ -64,6 +64,8 @@ minerooms:
                 name: "§eWarehouse"
             99: 
                 name: "??"
+            404:
+                name: "§7Colosseum of §0Shadows"
             666: 
                 name: "§0Despair"
             9999999:
@@ -104,6 +106,7 @@ minerooms:
                 37: "Level_37"
                 70: "Level_70"
                 99: "Level_99"
+                404: "Level_404"
                 666: "Level_666"
                 999999: "Level_999999"
         ranks:
@@ -216,6 +219,15 @@ minerooms:
                 title: "§6Container §eVisualizer"
     quit:
         coordinate: "§6[§eMineRooms§6]§r §b❢ §7<arg0> §ejust disconnected §7§o(<arg1>)"
+    duel:
+        gui:
+            title: "§1Duel"
+            amical:
+                name: "§aFriendly fight"
+                lore: "§7§oNone of the fighters lose their stuff when they die.."
+            death:
+                name: "§4Death match"
+                lore: "§7§oThe first to die loses their stuff and the other takes it."
     ranks:
         default:
             name: "§d§lDefault"
@@ -283,10 +295,15 @@ minerooms:
                     pages:
                         - "§4lParanormal §aentity"
                         - "Nothing"
+        404:
+            lore:
+
         666:
             lore:
+
         999999:
             lore:
+
     wiki:
         book:
             name: "Enculer"
