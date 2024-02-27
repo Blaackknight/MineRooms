@@ -12,16 +12,23 @@ minerooms:
     decoCombat:
         active: "§cYou are in combat (§l<arg0>s§r§c)"
         death: "<arg0> was slain by <arg1>"
+    generic:
+        gui:
+            nextPage: "§7Next page"
+            previousPage: "§7Previous page"
     functions:
         travel:
             actionBar: "§eSurvival Difficulty: §d<arg0>§r §ePvP:§r <arg1>"
             secure:
+                '?': "§8Not determined"
                 true: "§aSecure"
                 false: "§cInsecure"
             stable:
+                '?': "§8Mysterious properties"
                 true: "§aStable"
                 false: "§cNot Stable"
             entity:
+                '?': "§8Undocumented entities"
                 0: "§dDevoid of entity"
                 1: "§eMinimal number of entities"
                 2: "§6Low number of entities"
@@ -59,7 +66,7 @@ minerooms:
             12:
                 name: "§aMatrix"
             19:
-                name: "??"
+                name: "§eHumaverum Ossa"
             37:
                 name: "§bPoolRooms"
             70:
@@ -68,8 +75,12 @@ minerooms:
                 name: "??"
             404:
                 name: "§7Colosseum of §0Shadows"
+            600:
+                name: "§eThe End"
             666: 
                 name: "§0Despair"
+            974: 
+                name: "§dKitty's House"
             9999999:
                 name: "§6§k{§r§dTest Zone§6§k}§r"
     command:
@@ -83,6 +94,7 @@ minerooms:
         noClip:
             gui:
                 title: "§e§lNo Clip"
+                title_2: "§e§lNo Clip§r §7§o(2)"
                 clickToTeleport: "§7§oClick to teleport to <arg0>"
                 survival_difficulty: "§eSurvival difficulty: §d<arg0>"
                 secure: "§eSecure: <arg0>"
@@ -110,7 +122,9 @@ minerooms:
                 70: "Level_70"
                 99: "Level_99"
                 404: "Level_404"
+                600: "temp_The_End"
                 666: "Level_666"
+                974: "Level_974"
                 999999: "Level_999999"
         ranks:
             list:
@@ -304,7 +318,13 @@ minerooms:
         404:
             lore:
 
+        600:
+            lore:
+
         666:
+            lore:
+
+        974:
             lore:
 
         999999:

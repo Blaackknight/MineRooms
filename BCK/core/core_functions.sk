@@ -1055,3 +1055,7 @@ function getRandomGlassPaneWithouted(color: string) :: item:
         if "%{_v}%" doesn't contain {_color}:
             add loop-value to {_b::*}
     return random element of {_b::*}
+function entityType(e: entity) :: string:
+    set {_t} to "%type of {_e}%" in strict proper case
+    set {_text} to "<tooltip:%{_e}'s name%%nl%Type: %{_t}%%nl%%{_e}'s uuid%>%{_e}'s name%§r"
+    return {_text}

@@ -58,7 +58,7 @@ on break:
         cancel event
         send lang("core.noPermission", player) to player
     else:
-        logCustom("%{_player}'s name% has just breaking the §7%event-block%", 5)
+        logCustom("%entityType(player)% has just breaking the §7%event-block%", 5)
 on place:
     if player is not set:
         set {_player} to "Server"
@@ -71,7 +71,7 @@ on place:
         if "%type of event-block%" is "bite":
             cancel event
         else:
-            logCustom("%{_player}'s name% has just placing the §7%event-block%", 5)
+            logCustom("%entityType(player)% has just placing the §7%event-block%", 5)
 on drop:
     if hasPermission(player, "item.drop") is false:
         cancel event
@@ -86,7 +86,7 @@ on command:
     set {_p::*} to all players
     if {_p::*} contain sender:
         set {_v} to true
-        set {_player} to selector(player)
+        set {_player} to entityType(player)
     else if sender's name is "@":
         set {_player} to "@"
     else:
@@ -107,7 +107,7 @@ on command:
     else if {_player} is not "@":
         if hasPermission(player, "bypass.loglevel", true) is true:
             stop
-        superLog("§6[§4BCK§6]§r §7%selector(player)%§r has just executed the command §7/%complete command%", "4")
+        superLog("§6[§4BCK§6]§r §7%{_player}%§r has just executed the command §7/%complete command%", "4")
 on command "/pl":
     if hasPermission(player, "server.owner") is false:
         cancel event
@@ -132,11 +132,11 @@ on damage:
         set {_a} to attacker
         if damage cause is fall:
             set {_a} to "fall"
-        logCustom("%{_v}'s name% has just taken damage by §7%{_a}'s name% (%damage%§4♥§7)§r at %event-location%", 5)
+        logCustom("%entityType({_v})% has just taken damage by §7%entityType({_a})% (%damage%§4♥§7)§r at %event-location%", 5)
 on drop:
-    logCustom("%player's name% has just dropped a §7%event-item%§r on the ground at %event-location%", 5)
+    logCustom("%entityType(player)% has just dropped a §7%event-item%§r on the ground at %event-location%", 5)
 on pickup:
-    logCustom("%player's name% has just pickup a §7%event-item%§r at %event-location%", 5)
+    logCustom("%entityType(player)% has just pickup a §7%event-item%§r at %event-location%", 5)
 on enderman pickup:
     logCustom("§l§5Mr Enderman§r just stole a §7%event-block%§r at %event-location%", 5)
 on explode:
@@ -146,11 +146,11 @@ on fade of snow layer:
 on fade of ice:
     logCustom("§7%event-block%§r has just melted at %event-location%", 5)
 on player fish:
-    logCustom("%player's name% has just fished", 5)
+    logCustom("%entityType(player)% has just fished", 5)
 on grow:
     logCustom("§7%event-block%§r just sprouted at %event-location%", 5)
 on tool break:
-    logCustom("%selector(player)%'s tool just broken (§7%event-item%§r)", 5)
+    logCustom("%entityType(player)%'s tool just broken (§7%event-item%§r)", 5)
 on item despawn:
     logCustom("§7%event-item%§r just disappeared at %event-location%", 5)
 on explosion prime:
