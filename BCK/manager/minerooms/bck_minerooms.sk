@@ -2497,6 +2497,22 @@ on inventory click:
         if "%{_t}%" contain "barrier":
             if {_u} contain "Back":
                 close player's inventory
+        else if "%{_t}%" is "diamond sword":
+            set {_uuid} to string tag "duel;uuid" of nbt compound of {_i}
+            set {_name} to string tag "duel;name" of nbt compound of {_i}
+            if {_uuid} and {_name} is set:
+                set {_x} to {_uuid} parsed as offlineplayer
+                add {_x}'s name to {_args::*}
+                send formatted superLang("minerooms.duel.gui.amical.sentTo", player, {_args::*}) to player
+                clear {_args::*}
+                add {_name} to {_args::*}
+                add "<cmd:/duel accept>Accepter" to {_args::*}
+                add "<cmd:/duel decline>Refuser" to {_args::*}
+                send formatted superLang("minerooms.duel.gui.amical.recieveFrom", {_x}, {_args::*}) to {_x}
+                userDataBoolean({_x}, "player.duel.requested", "set", true)
+                userData({_x}, "player.duel.requester", "set", {_uuid})
+        else if "%{_t}%" is "netherite sword":
+            
 function mineroomsGetLevel(player: player, num: number=-1, def: boolean=false) :: text:
     if "%{_num}%" contain ".":
         set {_num} to "%{_num}%"
@@ -3013,17 +3029,34 @@ function mineroomsDuelGuiMain(player: player, target: player):
     userData({_player}, "data.inv", "set", "manager.minerooms.duel.main")
     open {_gui} to {_player}
     set slot 22 of {_gui} to air
-    set {_amical_duel} to iron sword named lang("minerooms.duel.gui.amical.name", {_player})
+    set {_amical_duel} to diamond sword named lang("minerooms.duel.gui.amical.name", {_player})
     set line 2 of lore of {_amical_duel} to lang("minerooms.duel.gui.amical.lore", {_player})
     set {_amical_duelTag} to nbt compound of {_amical_duel}
-    set string tag "target_uuid" of {_amical_duelTag} to {_target}'s uuid
-    set {_death_duel} to iron sword named lang("minerooms.duel.gui.death.name", {_player})
+    set string tag "duel;uuid" of {_amical_duelTag} to {_target}'s uuid
+    set string tag "duel;name" of {_amical_duelTag} to {_target}'s name
+    set {_death_duel} to netherite sword named lang("minerooms.duel.gui.death.name", {_player})
     set line 2 of lore of {_death_duel} to lang("minerooms.duel.gui.death.lore", {_player})
     set {_death_duelTag} to nbt compound of {_death_duel}
-    set string tag "target_uuid" of {_death_duelTag} to {_target}'s uuid
+    set string tag "duel;uuid" of {_death_duelTag} to {_target}'s uuid
+    set string tag "duel;name" of {_death_duelTag} to {_target}'s name
     set slot 12 of {_gui} to {_amical_duel}
     set slot 14 of {_gui} to {_death_duel}
     userData({_player}, "data.inv", "set", "manager.minerooms.duel.main")
+command /duel [<string>]:
+    trigger:
+        if arg-1 is "accept":
+            if userDataBoolean(player, "player.duel.requested") is true:
+                if userData(player, "player.duel.requester") is not "<none>":
+                    set {_x} to userData(player, "player.duel.requester") parsed as offlineplayer
+                    send formatted superLang("minerooms.duel.gui.amical.accepted", player, {_args::*}) to player
+                    send formatted superLang("minerooms.duel.gui.amical.amicalFrom", {_x}, {_args::*}) to {_x}
+                    userDataBoolean(player, "player.duel.accepted", "set", true)
+        else if arg-1 is "decline":
+            if userDataBoolean(player, "player.duel.requested") is true:
+                if userData(player, "player.duel.requester") is not "<none>":
+                    userDataBoolean(player, "player.duel.accepted", "set", false)
+                    userDataBoolean(player, "player.duel.requested", "set", false)
+
 on right click on entity:
     set {_e} to event-entity
     if player is sneaking:

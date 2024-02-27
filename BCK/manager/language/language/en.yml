@@ -56,6 +56,8 @@ minerooms:
                 name: "§eWheat fields"
             11:
                 name: "§6Endless city"
+            12:
+                name: "§aMatrix"
             19:
                 name: "??"
             37:
@@ -102,6 +104,7 @@ minerooms:
                 9: "Level_9"
                 10: "Level_10"
                 11: "Level_11"
+                12: "Level_12"
                 19: "Level_19"
                 37: "Level_37"
                 70: "Level_70"
@@ -279,6 +282,9 @@ minerooms:
             lore:
 
         11:
+            lore:
+        
+        12:
             lore:
                 
         99:

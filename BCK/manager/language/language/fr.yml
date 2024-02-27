@@ -56,6 +56,8 @@ minerooms:
                 name: "§eChamps de blés"
             11:
                 name: "§6Ville sans fin"
+            12:
+                name: "§aMatrix"
             19:
                 name: "??"
             37:
@@ -102,6 +104,7 @@ minerooms:
                 9: "Niveau_9"
                 10: "Niveau_10"
                 11: "Niveau_11"
+                12: "Niveau_12"
                 19: "Niveau_19"
                 37: "Niveau_37"
                 70: "Niveau_70"
@@ -225,6 +228,8 @@ minerooms:
             amical:
                 name: "§aCombat amical"
                 lore: "§7§oAucun des combattant de perd son stuff à sa mort."
+                sentTo: "§6[§1Duel§6]§r §7Demande de combat amical envoyer à §b<arg0> §7!"
+                recieveFrom: "§6[§1Duel§6]§r §7Vous avez reçu une demande de duel amical de §b<arg0>§7. (§a<arg1>§7) (§c<arg2>§7)"
             death:
                 name: "§4Combat à mort"
                 lore: "§7§oLe premier à mourir perd son stuff et l'autre le prend."
@@ -280,6 +285,9 @@ minerooms:
             lore:
 
         11:
+            lore:
+
+        12:
             lore:
                 
         99:
