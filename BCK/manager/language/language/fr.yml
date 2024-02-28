@@ -239,14 +239,29 @@ minerooms:
     duel:
         gui:
             title: "§1Duel"
+            players:
+                amical:
+                    title: "§1Joueurs"
+                death:
+                    title: "§1Joueurs"
             amical:
+                title: "§1Duel §aAmical"
                 name: "§aCombat amical"
                 lore: "§7§oAucun des combattant de perd son stuff à sa mort."
                 sentTo: "§6[§1Duel§6]§r §7Demande de combat amical envoyer à §b<arg0> §7!"
                 recieveFrom: "§6[§1Duel§6]§r §7Vous avez reçu une demande de duel amical de §b<arg0>§7. (§a<arg1>§7) (§c<arg2>§7)"
+                1vs1: "§5§l1 §r§4VS §5§l1"
+                2vs2: "§5§l2 §r§4VS §5§l2"
+                3vs3: "§5§l3 §r§4VS §5§l3"
+                4vs4: "§5§l4 §r§4VS §5§l4"
             death:
+                title: "§1Combat à §4Mort"
                 name: "§4Combat à mort"
                 lore: "§7§oLe premier à mourir perd son stuff et l'autre le prend."
+                1vs1: "§5§l1 §r§4VS §5§l1"
+                2vs2: "§5§l2 §r§4VS §5§l2"
+                3vs3: "§5§l3 §r§4VS §5§l3"
+                4vs4: "§5§l4 §r§4VS §5§l4"
 
     ranks:
         default:

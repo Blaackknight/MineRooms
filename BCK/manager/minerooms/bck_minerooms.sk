@@ -2121,7 +2121,6 @@ on chat:
     replace "temp_" with "" in {_ww}
     set {_ww::*} to {_ww} split by "_"
     set {_tg} to {_ww::2}
-    broadcast "%{_tg}%"
     set {_ggggg} to mineroomsDataBoolean("levels.%{_tg}%.chat.status")
     if mineroomsDataBoolean("levels.%{_tg}%.chat.status") is false:
         stop
@@ -2356,60 +2355,63 @@ function mineroomsNoClipGuiUpdater(player: player):
         add 1 to {_gc}
     loop yaml node keys "levels" from "bck.manager.minerooms.data":
         add loop-node to {_levelsList::*}
+    set {_cc} to 0
     loop {_levelsList::*}:
-        if {_sc} = 17 or 26 or 35:
-            add 2 to {_sc}
-        set {_r} to loop-value
-        set {_r::*} to {_r} split by "."
-        set {_r} to {_r::2}
-        set {_levelName} to mineroomsData("%loop-value%.name")
-        set {_levelDanger} to mineroomsData("%loop-value%.survival_difficulty")
-        set {_levelSecure} to mineroomsData("%loop-value%.secure")
-        set {_levelStable} to mineroomsData("%loop-value%.stable")
-        set {_levelEntity} to mineroomsData("%loop-value%.entity")
-        set {_levelPvp} to mineroomsData("%loop-value%.pvp")
-        set {_levelName} to configLang({_levelName}, {_player})
-        if {_levelName} is not lang("minerooms.command.noClip.levels.-1", {_player}):
-            if {_levelName} is "<none>":
-                set {_levelName} to "??"
-            #replace "temp_" with "" in {_levelName}
-            replace all "_" with " " in {_levelName}
-            set {_i} to paper named {_levelName}
-            add {_levelDanger} to {_args::*}
-            set line 2 of lore of {_i} to superLang("minerooms.command.noClip.gui.survival_difficulty", {_player}, {_args::*})
-            clear {_args::*}
-            if {_levelSecure} is "true":
-                set {_levelSecure} to "§a✔"
-            else if {_levelSecure} is "?":
-                set {_levelSecure} to "§8§k¿"
-            else:
-                set {_levelSecure} to "§c✖"
-            add {_levelSecure} to {_args::*}
-            set line 3 of lore of {_i} to superLang("minerooms.command.noClip.gui.secure", {_player}, {_args::*})
-            clear {_args::*}
-            if "%{_levelStable}%" is "true":
-                set {_levelStable} to "§a✔"
-            else if {_levelStable} is "?":
-                set {_levelStable} to "§8§k¿"
-            else:
-                set {_levelStable} to "§c✖"
-            add {_levelStable} to {_args::*}
-            set line 4 of lore of {_i} to superLang("minerooms.command.noClip.gui.stable", {_player}, {_args::*})
-            clear {_args::*}
-            add lang("minerooms.functions.travel.entity.%{_levelEntity}%", {_player}) to {_args::*}
-            set line 5 of lore of {_i} to superLang("minerooms.command.noClip.gui.entity", {_player}, {_args::*})
-            clear {_args::*}
-            set {_pvp} to "§2☻"
-            if {_levelPvp} is "true":
-                set {_pvp} to "§4☠"
-            add {_pvp} to {_args::*}
-            set line 6 of lore of {_i} to superLang("minerooms.command.noClip.gui.pvp", {_player}, {_args::*})
-            clear {_args::*}
-            add {_levelName} to {_args::*}
-            set line 8 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
-            set slot {_sc} of {_gui} to {_i}
-            clear {_args::*}
-            add 1 to {_sc}
+        if {_cc} < 28:
+            if {_sc} = 17 or 26 or 35:
+                add 2 to {_sc}
+            set {_r} to loop-value
+            set {_r::*} to {_r} split by "."
+            set {_r} to {_r::2}
+            set {_levelName} to mineroomsData("%loop-value%.name")
+            set {_levelDanger} to mineroomsData("%loop-value%.survival_difficulty")
+            set {_levelSecure} to mineroomsData("%loop-value%.secure")
+            set {_levelStable} to mineroomsData("%loop-value%.stable")
+            set {_levelEntity} to mineroomsData("%loop-value%.entity")
+            set {_levelPvp} to mineroomsData("%loop-value%.pvp")
+            set {_levelName} to configLang({_levelName}, {_player})
+            if {_levelName} is not lang("minerooms.command.noClip.levels.-1", {_player}):
+                if {_levelName} is "<none>":
+                    set {_levelName} to "??"
+                #replace "temp_" with "" in {_levelName}
+                replace all "_" with " " in {_levelName}
+                set {_i} to paper named {_levelName}
+                add {_levelDanger} to {_args::*}
+                set line 2 of lore of {_i} to superLang("minerooms.command.noClip.gui.survival_difficulty", {_player}, {_args::*})
+                clear {_args::*}
+                if {_levelSecure} is "true":
+                    set {_levelSecure} to "§a✔"
+                else if {_levelSecure} is "?":
+                    set {_levelSecure} to "§8§k¿"
+                else:
+                    set {_levelSecure} to "§c✖"
+                add {_levelSecure} to {_args::*}
+                set line 3 of lore of {_i} to superLang("minerooms.command.noClip.gui.secure", {_player}, {_args::*})
+                clear {_args::*}
+                if "%{_levelStable}%" is "true":
+                    set {_levelStable} to "§a✔"
+                else if {_levelStable} is "?":
+                    set {_levelStable} to "§8§k¿"
+                else:
+                    set {_levelStable} to "§c✖"
+                add {_levelStable} to {_args::*}
+                set line 4 of lore of {_i} to superLang("minerooms.command.noClip.gui.stable", {_player}, {_args::*})
+                clear {_args::*}
+                add lang("minerooms.functions.travel.entity.%{_levelEntity}%", {_player}) to {_args::*}
+                set line 5 of lore of {_i} to superLang("minerooms.command.noClip.gui.entity", {_player}, {_args::*})
+                clear {_args::*}
+                set {_pvp} to "§2☻"
+                if {_levelPvp} is "true":
+                    set {_pvp} to "§4☠"
+                add {_pvp} to {_args::*}
+                set line 6 of lore of {_i} to superLang("minerooms.command.noClip.gui.pvp", {_player}, {_args::*})
+                clear {_args::*}
+                add {_levelName} to {_args::*}
+                set line 8 of lore of {_i} to superLang("minerooms.command.noClip.gui.clickToTeleport", {_player}, {_args::*})
+                set slot {_sc} of {_gui} to {_i}
+                clear {_args::*}
+                add 1 to {_sc}
+                add 1 to {_cc}
         if listCounter({_levelsList::*}) >= 29:
             set slot 53 of {_gui} to arrow named lang("minerooms.generic.gui.nextPage", {_player})
     userData({_player}, "data.inv", "set", "manager.minerooms.noClip.main")
@@ -2481,7 +2483,7 @@ function mineroomsNoClipPage2GuiUpdater(player: player):
                 set slot {_sc} of {_gui} to {_i}
                 clear {_args::*}
                 add 1 to {_sc}
-            add 1 to {_cc}
+        add 1 to {_cc}
         set slot 45 of {_gui} to arrow named lang("minerooms.generic.gui.previousPage", {_player})
     userData({_player}, "data.inv", "set", "manager.minerooms.noClip.page_2.main")
 function mineroomsRankListGuiUpdater(player: player):
@@ -2570,6 +2572,26 @@ on inventory click:
         if "%{_t}%" is "arrow":
             if {_u} is lang("minerooms.generic.gui.previousPage", player):
                 mineroomsNoClip(player)
+        else:
+            if "%{_t}%" contain "paper":
+                loop yaml node keys "levels" from "bck.manager.minerooms.data":
+                    add loop-node to {_levelsList::*}
+                loop {_levelsList::*}:
+                    if {_sc} = 17 or 27:
+                        add 2 to {_sc}
+                    set {_r} to loop-value
+                    set {_r::*} to {_r} split by "."
+                    set {_r} to {_r::2}
+                    set {_levelName} to mineroomsData("%loop-value%.name")
+                    set {_levelNameBis} to configLang({_levelName}, player, "language", true)
+                    set {_levelName} to configLang({_levelName}, player)
+                    replace all "_" with " " in {_levelName}
+                    if {_u} is {_levelName}:
+                        close player's inventory
+                        replace all "-" with "." in {_r}
+                        set {_xx} to "%{_r}%" parsed as number
+                        #broadcast "%{_levelName}% = %{_r}%"
+                        mineroomsTravel(player, {_xx}, true)
     else if userData(player, "data.inv") is "manager.minerooms.ranks.list.main":
         cancel event
         set {_gui} to player's current inventory
@@ -2593,20 +2615,59 @@ on inventory click:
             if {_u} contain "Back":
                 close player's inventory
         else if "%{_t}%" is "diamond sword":
-            set {_uuid} to string tag "duel;uuid" of nbt compound of {_i}
-            set {_name} to string tag "duel;name" of nbt compound of {_i}
-            if {_uuid} and {_name} is set:
-                set {_x} to {_uuid} parsed as offlineplayer
-                add {_x}'s name to {_args::*}
-                send formatted superLang("minerooms.duel.gui.amical.sentTo", player, {_args::*}) to player
-                clear {_args::*}
-                add {_name} to {_args::*}
-                add "<cmd:/duel accept>Accepter" to {_args::*}
-                add "<cmd:/duel decline>Refuser" to {_args::*}
-                send formatted superLang("minerooms.duel.gui.amical.recieveFrom", {_x}, {_args::*}) to {_x}
-                userDataBoolean({_x}, "player.duel.requested", "set", true)
-                userData({_x}, "player.duel.requester", "set", {_uuid})
+            mineroomsDuelAmicalGuiMain(player)
         else if "%{_t}%" is "netherite sword":
+            mineroomsDuelDeathGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.duel.amical.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsDuelGuiMain(player)
+        else if "%{_t}%" contain "book":
+            if uncolored {_u} is uncolored lang("minerooms.duel.gui.amical.1vs1", player):
+                mineroomsDuelPlayersAmicalGuiMain(player)
+            else if "%{_u}%" is lang("minerooms.duel.gui.amical.2vs2", player):
+
+            else if "%{_u}%" is lang("minerooms.duel.gui.amical.3vs3", player):
+
+            else if "%{_u}%" is lang("minerooms.duel.gui.amical.4vs4", player):
+
+    else if userData(player, "data.inv") is "manager.minerooms.duel.players.amical.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsDuelAmicalGuiMain(player)
+    else if userData(player, "data.inv") is "manager.minerooms.duel.death.main":
+        cancel event
+        set {_gui} to player's current inventory
+        set {_i} to event-slot
+        set {_t} to type of {_i}
+        set {_n} to display name of {_i}
+        set {_u} to {_n}
+        set {_a} to item amount of event-slot
+        if "%{_t}%" contain "barrier":
+            if {_u} contain "Back":
+                mineroomsDuelGuiMain(player)
+        else if "%{_t}%" contain "paper":
+            if {_u} is lang("minerooms.duel.gui.death.1vs1", player):
+                
+            else if {_u} is lang("minerooms.duel.gui.death.2vs2", player):
+
+            else if {_u} is lang("minerooms.duel.gui.death.3vs3", player):
+
+            else if {_u} is lang("minerooms.duel.gui.death.4vs4", player):
             
 function mineroomsGetLevel(player: player, num: number=-1, def: boolean=false) :: text:
     if "%{_num}%" contain ".":
@@ -3118,44 +3179,85 @@ function mineroomsBetaData(find: text, mode: text="extract", data: text="") :: t
         set yaml value "%{_find}%" from "bck.manager.minerooms.beta_data" to {_data}
         save yaml "bck.manager.minerooms.beta_data"
     return "%{_result}%"
-function mineroomsDuelGuiMain(player: player, target: player):
+function mineroomsDuelGuiMain(player: player):
     loadUserData({_player})
     set {_gui} to genericGui(lang("minerooms.duel.gui.title", {_player}), 3, true)
-    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    set slot 13 of {_gui} to redstone block named "§4Wait.."
     userData({_player}, "data.inv", "set", "manager.minerooms.duel.main")
     open {_gui} to {_player}
-    set slot 22 of {_gui} to air
+    set slot 13 of {_gui} to air
     set {_amical_duel} to diamond sword named lang("minerooms.duel.gui.amical.name", {_player})
     set line 2 of lore of {_amical_duel} to lang("minerooms.duel.gui.amical.lore", {_player})
-    set {_amical_duelTag} to nbt compound of {_amical_duel}
-    set string tag "duel;uuid" of {_amical_duelTag} to {_target}'s uuid
-    set string tag "duel;name" of {_amical_duelTag} to {_target}'s name
     set {_death_duel} to netherite sword named lang("minerooms.duel.gui.death.name", {_player})
     set line 2 of lore of {_death_duel} to lang("minerooms.duel.gui.death.lore", {_player})
-    set {_death_duelTag} to nbt compound of {_death_duel}
-    set string tag "duel;uuid" of {_death_duelTag} to {_target}'s uuid
-    set string tag "duel;name" of {_death_duelTag} to {_target}'s name
     set slot 12 of {_gui} to {_amical_duel}
     set slot 14 of {_gui} to {_death_duel}
     userData({_player}, "data.inv", "set", "manager.minerooms.duel.main")
-command /duel [<string>]:
+function mineroomsDuelAmicalGuiMain(player: player):
+    loadUserData({_player})
+    set {_gui} to genericGui(lang("minerooms.duel.gui.amical.title", {_player}), 3, true)
+    set slot 13 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.amical.main")
+    open {_gui} to {_player}
+    set slot 13 of {_gui} to air
+    set {_1} to book named lang("minerooms.duel.gui.amical.1vs1", {_player})
+    set {_2} to book named lang("minerooms.duel.gui.amical.2vs2", {_player})
+    set {_3} to book named lang("minerooms.duel.gui.amical.3vs3", {_player})
+    set {_4} to book named lang("minerooms.duel.gui.amical.4vs4", {_player})
+    set slot 10 of {_gui} to {_1}
+    set slot 12 of {_gui} to {_2}
+    set slot 14 of {_gui} to {_3}
+    set slot 16 of {_gui} to {_4}
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.amical.main")
+function mineroomsDuelDeathGuiMain(player: player):
+    loadUserData({_player})
+    set {_gui} to genericGui(lang("minerooms.duel.gui.death.title", {_player}), 3, true)
+    set slot 13 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.death.main")
+    open {_gui} to {_player}
+    set slot 13 of {_gui} to air
+    set {_1} to book named lang("minerooms.duel.gui.death.1vs1", {_player})
+    set {_2} to book named lang("minerooms.duel.gui.death.2vs2", {_player})
+    set {_3} to book named lang("minerooms.duel.gui.death.3vs3", {_player})
+    set {_4} to book named lang("minerooms.duel.gui.death.4vs4", {_player})
+    set slot 10 of {_gui} to {_1}
+    set slot 12 of {_gui} to {_2}
+    set slot 14 of {_gui} to {_3}
+    set slot 16 of {_gui} to {_4}
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.death.main")
+function mineroomsDuelPlayersAmicalGuiMain(player: player):
+    loadUserData({_player})
+    set {_gui} to genericGui(lang("minerooms.duel.gui.players.amical.title", {_player}), 5, true)
+    set slot 22 of {_gui} to redstone block named "§4Wait.."
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.players.amical.main")
+    open {_gui} to {_player}
+    set slot 22 of {_gui} to air
+    set {_slot} to 0
+    loop all players:
+        set {_x} to loop-player
+        if {_x}'s world is "Niveau_404":
+            set slot {_slot} of {_gui} to {_x}'s skull named "%{_x}'s name%"
+            add 1 to {_slot}
+    userData({_player}, "data.inv", "set", "manager.minerooms.duel.players.amical.main")
+command /duel:
     trigger:
-        if arg-1 is "accept":
-            if userDataBoolean(player, "player.duel.requested") is true:
-                if userData(player, "player.duel.requester") is not "<none>":
-                    set {_x} to userData(player, "player.duel.requester") parsed as offlineplayer
-                    send formatted superLang("minerooms.duel.gui.amical.accepted", player, {_args::*}) to player
-                    send formatted superLang("minerooms.duel.gui.amical.amicalFrom", {_x}, {_args::*}) to {_x}
-                    userDataBoolean(player, "player.duel.accepted", "set", true)
-        else if arg-1 is "decline":
-            if userDataBoolean(player, "player.duel.requested") is true:
-                if userData(player, "player.duel.requester") is not "<none>":
-                    userDataBoolean(player, "player.duel.accepted", "set", false)
-                    userDataBoolean(player, "player.duel.requested", "set", false)
+        mineroomsDuelGuiMain(player)
+        # if arg-1 is "accept":
+        #     if userDataBoolean(player, "player.duel.requested") is true:
+        #         if userData(player, "player.duel.requester") is not "<none>":
+        #             set {_x} to userData(player, "player.duel.requester") parsed as offlineplayer
+        #             send formatted superLang("minerooms.duel.gui.amical.accepted", player, {_args::*}) to player
+        #             send formatted superLang("minerooms.duel.gui.amical.amicalFrom", {_x}, {_args::*}) to {_x}
+        #             userDataBoolean(player, "player.duel.accepted", "set", true)
+        # else if arg-1 is "decline":
+        #     if userDataBoolean(player, "player.duel.requested") is true:
+        #         if userData(player, "player.duel.requester") is not "<none>":
+        #             userDataBoolean(player, "player.duel.accepted", "set", false)
+        #             userDataBoolean(player, "player.duel.requested", "set", false)
 
-on right click on entity:
-    set {_e} to event-entity
-    if player is sneaking:
-        if name of event-world is "Niveau_404":
-            if "%type of {_e}%" is "player":
-                mineroomsDuelGuiMain(player, {_e})
+# on right click on entity:
+#     set {_e} to event-entity
+#     if player is sneaking:
+#         if name of event-world is "Niveau_404":
+#             if "%type of {_e}%" is "player":
+#                 mineroomsDuelGuiMain(player, {_e})
